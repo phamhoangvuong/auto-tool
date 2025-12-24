@@ -3,69 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DTU NEBULA - AUTO LOGIN SYSTEM</title>
+    <title>HỆ THỐNG ĐĂNG KÝ TÍN CHỈ DTU</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    
+   
     <style>
-        /* --- CONFIG --- */
         :root {
             --primary: #6366f1; --admin: #f43f5e; --bg-dark: #020617;
             --glass-bg: rgba(15, 23, 42, 0.95); --glass-border: rgba(255, 255, 255, 0.1);
         }
         body { background-color: var(--bg-dark); color: #f8fafc; font-family: 'Outfit', sans-serif; overflow-x: hidden; margin: 0; }
-        
+       
         #particles-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; background: radial-gradient(circle at bottom, #1e1b4b 0%, #020617 100%); }
         .glass { background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); position: relative; z-index: 10; }
-        
-        /* --- UI ELEMENTS --- */
+       
         .input-field { width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 1rem 1rem 1rem 3rem; color: white; outline: none; transition: all 0.3s ease; position: relative; z-index: 50; pointer-events: auto; }
         .input-field:focus { border-color: var(--primary); background: rgba(255, 255, 255, 0.1); }
         .input-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #94a3b8; z-index: 51; pointer-events: none; }
         .btn-glow { background: linear-gradient(135deg, var(--primary), #8b5cf6); transition: all 0.3s; position: relative; overflow: hidden; cursor: pointer; z-index: 50; }
         .btn-glow:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5); }
-        
+       
         .auth-container { overflow: hidden; position: relative; z-index: 20; }
         .form-slider { display: flex; transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); width: 200%; }
         .form-slide { width: 50%; padding: 2rem; box-sizing: border-box; }
         .input-group { position: relative; margin-bottom: 1.2rem; z-index: 50; }
-        
+       
         .toast { position: fixed; top: 24px; right: 24px; transform: translate3d(150%, 0, 0); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); z-index: 9999; border-left: 4px solid var(--primary); will-change: transform; }
         .toast.show { transform: translate3d(0, 0, 0); }
-        
-        .table-row { border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s; }
+       
+        .table-row { border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s; cursor: pointer; }
         .table-row:hover { background: rgba(255,255,255,0.03); }
-        
+       
         .status-badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; text-transform: uppercase; white-space: nowrap; }
         .st-success { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
         .st-pending { background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.3); }
         .st-error { background: rgba(244, 63, 94, 0.15); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.3); }
         .st-process { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); animation: pulse 2s infinite; }
+        .st-done { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
         .admin-bg { background: linear-gradient(135deg, var(--admin), #be123c) !important; }
-        
+       
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
         .custom-scroll::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 10px; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        @keyframes scaleIn { from { transform: translate(-50%, -50%) scale(0.95); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
-        .modal-enter { animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        #welcome-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(12px);
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.4s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        #welcome-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #welcome-modal .modal-content {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 1px solid #6366f1;
+            border-radius: 24px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 30px 80px rgba(99, 102, 241, 0.6);
+            overflow: hidden;
+            animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
-
     <canvas id="particles-canvas"></canvas>
-
     <div id="toast" class="toast glass px-6 py-4 rounded-xl flex items-center gap-4 border border-white/10">
         <div id="toast-icon-bg" class="w-10 h-10 rounded-full flex items-center justify-center text-lg transition-colors duration-300"><i id="toast-icon" class="fa-solid fa-bell"></i></div>
         <div><h4 class="font-bold text-sm text-white" id="toast-title">Thông báo</h4><p class="text-xs text-gray-400" id="toast-msg">Nội dung...</p></div>
+    </div>
+
+    <!-- Modal Chào Mừng -->
+    <div id="welcome-modal">
+        <div class="modal-content p-8">
+            <div class="flex justify-between items-start mb-6">
+                <h3 class="text-2xl font-bold text-white flex items-center gap-3">
+                    <i class="fa-solid fa-bolt text-indigo-400 animate-pulse text-3xl"></i>
+                    Chào mừng đến với DTU Sniper Pro ⚡
+                </h3>
+                <button onclick="closeWelcomeModal()" class="text-gray-400 hover:text-white text-3xl transition">×</button>
+            </div>
+            <div class="space-y-6 text-sm text-gray-300 leading-relaxed">
+                <p class="flex items-center gap-3">
+                    <span class="text-yellow-400 text-xl">👑</span>
+                    <strong>Admin: Phạm Hoàng Vương</strong>
+                </p>
+
+                <div>
+                    <p class="font-bold text-cyan-400 mb-3 flex items-center gap-2">
+                        <span class="text-xl">🎯</span> TÍNH NĂNG CHÍNH
+                    </p>
+                    <p>• Tự động đăng nhập vào MyDTU</p>
+                    <p>• Giải Captcha AI siêu nhanh</p>
+                    <p>• Tự động đăng ký môn học theo danh sách mã lớp bạn cung cấp</p>
+                    <p>• Chạy liên tục 24/7 để săn lớp ngay khi có thể</p>
+                </div>
+
+                <div>
+                    <p class="font-bold text-orange-400 mb-3 flex items-center gap-2">
+                        <span class="text-xl">⚠️</span> LƯU Ý QUAN TRỌNG
+                    </p>
+                    <ol class="list-decimal list-inside space-y-2 ml-2 text-sm">
+                        <li>Tool sẽ sử dụng tài khoản MyDTU của bạn để đăng ký tự động.</li>
+                        <li>Vui lòng cung cấp đúng tài khoản và mật khẩu DTU.</li>
+                        <li>Nếu website trường bảo trì hoặc lỗi, tool sẽ tạm dừng và thử lại sau.</li>
+                        <li>Đăng ký thành công phụ thuộc vào tốc độ mạng và thời điểm chạy tool.</li>
+                        <li>Admin không chịu trách nhiệm nếu tài khoản DTU bị khóa do vi phạm quy định trường.</li>
+                    </ol>
+                </div>
+
+                <div>
+                    <p class="font-bold text-green-400 mb-3 flex items-center gap-2">
+                        <span class="text-xl">🔑</span> KÍCH HOẠT TÀI KHOẢN VIP
+                    </p>
+                    <p>Tài khoản miễn phí chỉ xem được thông tin. Để sử dụng tool đăng ký tự động, bạn cần nâng cấp gói VIP.</p>
+                    <p class="mt-3 font-semibold text-indigo-300">Liên hệ Admin để mua gói:</p>
+                    <div class="mt-3 space-y-2">
+                        <a href="https://www.facebook.com/PhamHoangVngw" target="_blank" class="flex items-center gap-3 p-3 bg-white/5 rounded-lg hover:bg-white/10 transition">
+                            <i class="fa-brands fa-facebook text-blue-500 text-xl"></i>
+                            <span class="font-medium">facebook.com/PhamHoangVngw</span>
+                        </a>
+                        <div onclick="copyZalo()" class="flex items-center gap-3 p-3 bg-white/5 rounded-lg hover:bg-white/10 transition cursor-pointer">
+                            <i class="fa-solid fa-phone text-green-500 text-xl"></i>
+                            <span class="font-medium">0795616819 (Zalo) - Nhấn để sao chép</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-10 flex gap-3 justify-center">
+                <button onclick="hideWelcomeFor2Hours()" class="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-white transition">
+                    Ẩn trong 2 tiếng
+                </button>
+                <button onclick="closeWelcomeModal()" class="btn-glow px-10 py-3 rounded-xl font-bold text-white shadow-lg hover:scale-105 transition">
+                    Tôi đã hiểu, bắt đầu sử dụng
+                </button>
+            </div>
+        </div>
     </div>
 
     <div id="view-auth" class="flex-grow flex items-center justify-center p-4 relative z-10">
         <div class="glass w-full max-w-[420px] rounded-3xl overflow-hidden shadow-2xl relative">
             <div class="pt-8 px-8 pb-4 text-center">
                 <div class="w-16 h-16 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-lg shadow-indigo-500/30"><i class="fa-solid fa-atom text-3xl text-white"></i></div>
-                <h1 class="text-2xl font-bold tracking-tight text-white">Nebula OS</h1>
+                <h1 class="text-2xl font-bold tracking-tight text-white">DTU TOOL</h1>
                 <div class="mt-6 bg-black/30 p-1 rounded-xl flex relative z-20">
                     <div id="tab-indicator" class="absolute w-[calc(50%-4px)] h-[calc(100%-8px)] bg-indigo-600 rounded-lg top-1 left-1 transition-all duration-300"></div>
                     <button onclick="switchAuthTab('login')" class="flex-1 py-2 text-sm font-semibold z-10 relative transition-colors duration-300 text-white cursor-pointer" id="btn-tab-login">Đăng Nhập</button>
@@ -76,8 +172,8 @@
                 <div class="form-slider" id="form-slider">
                     <div class="form-slide">
                         <form onsubmit="event.preventDefault(); handleLogin();">
-                            <div class="input-group"><input type="text" id="login-user" class="input-field" placeholder="Username" value="admin"><i class="fa-regular fa-user input-icon"></i></div>
-                            <div class="input-group"><input type="password" id="login-pass" class="input-field" placeholder="Password" value="123"><i class="fa-solid fa-lock input-icon"></i></div>
+                            <div class="input-group"><input type="text" id="login-user" class="input-field" placeholder="Tên đăng nhập..."><i class="fa-regular fa-user input-icon"></i></div>
+                            <div class="input-group"><input type="password" id="login-pass" class="input-field" placeholder="Mật khẩu..."><i class="fa-solid fa-lock input-icon"></i></div>
                             <button type="submit" class="btn-glow w-full py-3.5 rounded-xl font-bold text-white shadow-lg mt-2">TRUY CẬP NGAY</button>
                         </form>
                     </div>
@@ -91,7 +187,7 @@
                     </div>
                 </div>
             </div>
-            <div class="py-4 bg-black/20 text-center text-[10px] text-gray-500 relative z-20">System v2.1 - Auto Login Enabled</div>
+            <div class="py-4 bg-black/20 text-center text-[10px] text-gray-500 relative z-20">Hệ thống v2.6 - Real-time Result & Log</div>
         </div>
     </div>
 
@@ -100,7 +196,7 @@
             <div class="glass rounded-2xl px-6 py-3 flex justify-between items-center">
                 <div class="flex items-center gap-3">
                     <div id="nav-logo" class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg"><i class="fa-solid fa-layer-group"></i></div>
-                    <div class="hidden sm:block"><h2 class="font-bold text-sm leading-tight text-white">NEBULA</h2><span id="nav-role" class="text-[10px] text-indigo-300 tracking-wider">WORKSPACE</span></div>
+                    <div class="hidden sm:block"><h2 class="font-bold text-sm leading-tight text-white">DTU TOOL</h2><span id="nav-role" class="text-[10px] text-indigo-300 tracking-wider">KHÔNG GIAN LÀM VIỆC</span></div>
                 </div>
                 <div class="flex items-center gap-4">
                     <div class="text-right hidden sm:block">
@@ -112,14 +208,13 @@
                 </div>
             </div>
         </nav>
-
         <main class="container mx-auto px-4 py-8 flex-grow relative z-10">
             <div id="client-panel" class="hidden">
                 <div class="text-center mb-10" id="service-header">
                     <h1 class="text-3xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-cyan-400">Hệ Thống Tự Động Hóa</h1>
                     <p class="text-gray-400 max-w-xl mx-auto">Công cụ hỗ trợ sinh viên đăng ký tín chỉ siêu tốc.</p>
                 </div>
-                
+               
                 <div id="service-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-10">
                     <div onclick="openToolModal()" class="glass p-1 rounded-3xl cursor-pointer hover:scale-[1.02] transition duration-300 group">
                         <div class="bg-[#0f172a]/90 p-6 rounded-[22px] h-full flex flex-col relative z-10">
@@ -128,10 +223,9 @@
                             <div class="flex items-center justify-between border-t border-gray-700 pt-4"><span class="text-xs text-green-400 font-bold bg-green-400/10 px-2 py-1 rounded">VIP ONLY</span><i class="fa-solid fa-lock text-gray-500 group-hover:text-white transition"></i></div>
                         </div>
                     </div>
-                    <div class="glass p-6 rounded-3xl opacity-50 grayscale cursor-not-allowed"><div class="w-14 h-14 rounded-2xl bg-gray-700 flex items-center justify-center text-white text-2xl mb-4"><i class="fa-solid fa-calendar-days"></i></div><h3 class="text-xl font-bold text-white mb-2">Xếp Lịch Học</h3><p class="text-sm text-gray-400 mb-6">Coming Soon.</p></div>
-                    <div class="glass p-6 rounded-3xl opacity-50 grayscale cursor-not-allowed"><div class="w-14 h-14 rounded-2xl bg-gray-700 flex items-center justify-center text-white text-2xl mb-4"><i class="fa-solid fa-chart-pie"></i></div><h3 class="text-xl font-bold text-white mb-2">Tính Điểm GPA</h3><p class="text-sm text-gray-400 mb-6">Coming Soon.</p></div>
+                    <div class="glass p-6 rounded-3xl opacity-50 grayscale cursor-not-allowed"><div class="w-14 h-14 rounded-2xl bg-gray-700 flex items-center justify-center text-white text-2xl mb-4"><i class="fa-solid fa-calendar-days"></i></div><h3 class="text-xl font-bold text-white mb-2">Xếp Lịch Học</h3><p class="text-sm text-gray-400 mb-6">Sắp ra mắt.</p></div>
+                    <div class="glass p-6 rounded-3xl opacity-50 grayscale cursor-not-allowed"><div class="w-14 h-14 rounded-2xl bg-gray-700 flex items-center justify-center text-white text-2xl mb-4"><i class="fa-solid fa-chart-pie"></i></div><h3 class="text-xl font-bold text-white mb-2">Tính Điểm GPA</h3><p class="text-sm text-gray-400 mb-6">Sắp ra mắt.</p></div>
                 </div>
-
                 <div class="max-w-5xl mx-auto">
                     <div class="glass rounded-2xl overflow-hidden border border-white/10">
                         <div class="p-5 border-b border-white/10 flex items-center gap-3">
@@ -139,18 +233,17 @@
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm text-left text-gray-400">
-                                <thead class="text-xs text-gray-500 uppercase bg-black/20"><tr><th class="px-6 py-4">Thời gian</th><th class="px-6 py-4">Dịch vụ</th><th class="px-6 py-4">Số lượng lớp</th><th class="px-6 py-4">Trạng thái</th></tr></thead>
+                                <thead class="text-xs text-gray-500 uppercase bg-black/20"><tr><th class="px-6 py-4">Thời gian</th><th class="px-6 py-4">Dịch vụ</th><th class="px-6 py-4">Kết quả</th><th class="px-6 py-4">Trạng thái</th></tr></thead>
                                 <tbody id="client-history-body"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             </div>
-
             <div id="admin-panel" class="hidden">
                 <div class="mb-8 flex items-center justify-between">
-                    <div><h2 class="text-3xl font-bold text-white mb-2">Bảng Quản Trị</h2><p class="text-gray-400 text-sm">Trung tâm điều hành Nebula OS (Dữ liệu thực).</p></div>
-                    <div class="px-4 py-2 bg-rose-500/20 border border-rose-500/50 rounded-lg text-rose-400 text-xs font-bold uppercase animate-pulse"><i class="fa-solid fa-circle text-[8px] mr-2"></i> Real-time DB</div>
+                    <div><h2 class="text-3xl font-bold text-white mb-2">Bảng Quản Trị</h2><p class="text-gray-400 text-sm">Trung tâm điều hành DTU TOOL (Dữ liệu thực).</p></div>
+                    <div class="px-4 py-2 bg-rose-500/20 border border-rose-500/50 rounded-lg text-rose-400 text-xs font-bold uppercase animate-pulse"><i class="fa-solid fa-circle text-[8px] mr-2"></i> Trực tuyến</div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                     <div class="glass p-5 rounded-2xl border-l-4 border-rose-500"><div class="text-xs text-gray-400 font-bold uppercase mb-1">Thành Viên</div><div class="text-2xl font-bold text-white" id="stat-users">0</div></div>
@@ -160,13 +253,41 @@
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="glass rounded-2xl overflow-hidden border border-white/10 h-fit">
-                        <div class="p-5 border-b border-white/10 flex justify-between items-center"><h3 class="font-bold text-lg"><i class="fa-solid fa-users mr-2 text-indigo-400"></i>Thành Viên</h3><button onclick="openUserListModal()" class="text-xs bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded transition font-bold text-white">Quản lý tất cả</button></div>
-                        <div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-400"><thead class="text-xs text-gray-500 uppercase bg-black/20"><tr><th class="px-6 py-4">User</th><th class="px-6 py-4">Gói</th><th class="px-6 py-4">Status</th><th class="px-6 py-4">Action</th></tr></thead><tbody id="user-table-body"></tbody></table></div>
+                        <div class="p-5 border-b border-white/10 flex justify-between items-center">
+                            <h3 class="font-bold text-lg"><i class="fa-solid fa-users mr-2 text-indigo-400"></i>Thành Viên</h3>
+                            <button onclick="openUserListModal()" class="text-xs bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded transition font-bold text-white">Quản lý tất cả</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-gray-400">
+                                <thead class="text-xs text-gray-500 uppercase bg-black/20">
+                                    <tr>
+                                        <th class="px-6 py-4">Tài khoản</th>
+                                        <th class="px-6 py-4">Gói</th>
+                                        <th class="px-6 py-4">Trạng thái</th>
+                                        <th class="px-6 py-4">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="user-table-body"></tbody>
+                            </table>
+                        </div>
                     </div>
                     <div class="glass rounded-2xl overflow-hidden border border-white/10 h-fit">
-                        <div class="p-5 border-b border-white/10 flex justify-between items-center"><h3 class="font-bold text-lg"><i class="fa-solid fa-list-check mr-2 text-green-400"></i>Đơn Hàng Dịch Vụ</h3><span class="text-xs text-gray-500">Live Updates</span></div>
+                        <div class="p-5 border-b border-white/10 flex justify-between items-center">
+                            <h3 class="font-bold text-lg"><i class="fa-solid fa-list-check mr-2 text-green-400"></i>Đơn Hàng Dịch Vụ</h3>
+                            <span class="text-xs text-gray-500">Cập nhật trực tiếp</span>
+                        </div>
                         <div class="overflow-x-auto max-h-[400px] overflow-y-auto custom-scroll">
-                            <table class="w-full text-sm text-left text-gray-400"><thead class="text-xs text-gray-500 uppercase bg-black/20 sticky top-0 backdrop-blur-md"><tr><th class="px-4 py-3">Khách</th><th class="px-4 py-3">Dịch vụ</th><th class="px-4 py-3">Chi tiết</th><th class="px-4 py-3">TT</th></tr></thead><tbody id="order-table-body"></tbody></table>
+                            <table class="w-full text-sm text-left text-gray-400">
+                                <thead class="text-xs text-gray-500 uppercase bg-black/20 sticky top-0 backdrop-blur-md">
+                                    <tr>
+                                        <th class="px-4 py-3">Khách</th>
+                                        <th class="px-4 py-3">Dịch vụ</th>
+                                        <th class="px-4 py-3">Chi tiết</th>
+                                        <th class="px-4 py-3">TT</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="order-table-body"></tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -174,6 +295,7 @@
         </main>
     </div>
 
+    <!-- Modal Chi Tiết Đơn Hàng - ĐÃ ĐƯỢC CẬP NHẬT -->
     <div id="order-detail-modal" class="fixed inset-0 z-[65] hidden">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer" onclick="closeOrderDetailModal()"></div>
         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-lg px-4 modal-enter z-[75]">
@@ -184,6 +306,7 @@
                 </div>
                 <div class="p-6">
                     <div class="flex justify-between mb-4 text-sm"><span class="text-gray-400">Khách hàng:</span><span class="text-white font-bold" id="detail-user">...</span></div>
+                    <div class="mb-4 p-3 rounded-lg text-center font-bold text-sm" id="detail-plan-status"></div>
                     <div class="bg-indigo-500/10 p-3 rounded-xl mb-4 border border-indigo-500/20">
                         <div class="flex items-center gap-2 mb-2 text-xs font-bold text-indigo-400 uppercase"><i class="fa-solid fa-key"></i> Thông tin đăng nhập MyDTU</div>
                         <div class="grid grid-cols-2 gap-2">
@@ -191,83 +314,153 @@
                             <div><div class="text-[10px] text-gray-500 uppercase">Mật khẩu</div><div class="text-white font-mono text-sm bg-black/20 p-1.5 rounded select-all" id="detail-dtu-pass">...</div></div>
                         </div>
                     </div>
-                    <div class="bg-black/30 rounded-xl p-4 mb-6 max-h-[150px] overflow-y-auto custom-scroll">
-                        <table class="w-full text-xs text-left"><thead class="text-gray-500 uppercase border-b border-white/10"><tr><th class="py-2">Mã Lớp</th><th class="py-2 text-right">Trạng thái</th></tr></thead><tbody id="detail-items" class="text-gray-300"></tbody></table>
+
+                    <!-- LOG SERVER CHỈ HIỂN THỊ CHO ADMIN -->
+                    <div id="admin-log-section" class="mb-5 hidden">
+                        <div class="text-xs font-bold text-cyan-400 uppercase mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-terminal"></i> Log Server (Chỉ Admin)
+                        </div>
+                        <div class="bg-black/40 rounded-xl p-4 max-h-60 overflow-y-auto custom-scroll font-mono text-xs leading-relaxed text-gray-300" id="detail-live-log">
+                            Chưa có log...
+                        </div>
                     </div>
+
+                    <!-- KẾT QUẢ TỪNG LỚP - HIỂN THỊ CHO TẤT CẢ -->
+                    <div class="bg-black/30 rounded-xl p-4 mb-6 max-h-[300px] overflow-y-auto custom-scroll">
+                        <div class="text-xs font-bold text-yellow-400 uppercase mb-3">Kết quả đăng ký từng lớp</div>
+                        <table class="w-full text-xs text-left">
+                            <thead class="text-gray-500 uppercase border-b border-white/10">
+                                <tr><th class="py-2">Mã Lớp</th><th class="py-2 text-right">Trạng thái</th></tr>
+                            </thead>
+                            <tbody id="detail-items" class="text-gray-300"></tbody>
+                        </table>
+                    </div>
+
                     <div class="grid grid-cols-2 gap-3">
-                        <button onclick="rerunOrder()" class="col-span-2 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-xl text-white font-bold text-sm shadow-lg border border-blue-400/30 transition transform active:scale-95 flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-rotate-right"></i> CHẠY LẠI TOOL (Re-run)
+                        <button onclick="rerunOrder()" id="btn-rerun" class="col-span-2 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-xl text-white font-bold text-sm shadow-lg border border-blue-400/30 transition transform active:scale-95 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-rotate-right"></i> CHẠY LẠI TOOL
                         </button>
-                        <button onclick="updateOrderStatus('completed')" class="py-3 bg-emerald-600/20 hover:bg-emerald-600 border border-emerald-500/50 rounded-xl text-emerald-400 hover:text-white font-bold text-xs transition">Hoàn tất đơn</button>
-                        <button onclick="updateOrderStatus('cancelled')" class="py-3 bg-gray-700/50 hover:bg-gray-600 border border-gray-600 rounded-xl text-gray-400 hover:text-white font-bold text-xs transition">Hủy đơn</button>
+                        <button onclick="updateOrderStatus('completed')" id="btn-complete" class="py-3 bg-emerald-600/20 hover:bg-emerald-600 border border-emerald-500/50 rounded-xl text-emerald-400 hover:text-white font-bold text-xs transition">Hoàn tất đơn</button>
+                        <button onclick="updateOrderStatus('cancelled')" id="btn-cancel" class="py-3 bg-gray-700/50 hover:bg-gray-600 border border-gray-600 rounded-xl text-gray-400 hover:text-white font-bold text-xs transition">Hủy đơn</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Modal Tool -->
     <div id="tool-modal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer" onclick="closeToolModal()"></div>
         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-4 modal-enter z-50">
             <div class="glass rounded-2xl p-6 md:p-8">
                 <div class="flex justify-between items-center mb-6"><h3 class="text-xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-sliders text-indigo-400"></i> Cấu hình Auto</h3><button onclick="closeToolModal()" class="w-8 h-8 rounded-full bg-gray-700 hover:text-white flex items-center justify-center cursor-pointer"><i class="fa-solid fa-xmark"></i></button></div>
                 <div class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4"><div><label class="text-xs font-bold text-gray-400 block mb-1">User DTU</label><input type="text" id="tool-dtu-user" class="input-field py-2 text-sm" value="212123456"></div><div><label class="text-xs font-bold text-gray-400 block mb-1">Pass DTU</label><input type="password" id="tool-dtu-pass" class="input-field py-2 text-sm" value="*******"></div></div>
-                    <div><label class="text-xs font-bold text-gray-400 block mb-1">Mã Lớp (Cách nhau bằng dấu phẩy)</label><textarea id="tool-codes" class="input-field py-2 h-24 font-mono text-sm text-yellow-300">ENG267202502013, ENG117202502149</textarea></div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="text-xs font-bold text-gray-400 block mb-1">Tài khoản DTU</label><input type="text" id="tool-dtu-user" class="input-field py-2 text-sm" placeholder="Nhập tài khoản..."></div>
+                        <div><label class="text-xs font-bold text-gray-400 block mb-1">Mật khẩu DTU</label><input type="password" id="tool-dtu-pass" class="input-field py-2 text-sm" placeholder="Nhập mật khẩu..."></div>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-400 block mb-1">Mã Lớp (Mỗi mã 1 dòng hoặc cách nhau dấu phẩy)</label>
+                        <textarea id="tool-codes" class="input-field py-2 h-24 font-mono text-sm text-yellow-300" placeholder="ENG267....013&#10;ENG117....149"></textarea>
+                    </div>
                     <button onclick="runSimulation()" id="btn-run" class="w-full btn-glow py-3 rounded-xl font-bold text-white shadow-lg cursor-pointer">CHẠY NGAY</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="user-list-modal" class="fixed inset-0 z-50 hidden"><div class="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer" onclick="closeUserListModal()"></div><div class="absolute top-1/2 left-1/2 w-[90%] max-w-4xl h-[80vh] modal-enter origin-center transform -translate-x-1/2 -translate-y-1/2 z-50"><div class="glass rounded-2xl overflow-hidden shadow-2xl border border-indigo-500/30 flex flex-col h-full"><div class="p-5 border-b border-white/10 flex justify-between items-center bg-gray-900/50"><h3 class="text-xl font-bold text-white">Quản Lý Thành Viên</h3><button onclick="closeUserListModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white"><i class="fa-solid fa-xmark"></i></button></div><div class="flex-grow overflow-y-auto custom-scroll p-0"><table class="w-full text-sm text-left text-gray-400"><thead class="text-xs text-gray-500 uppercase bg-black/30 sticky top-0 backdrop-blur-md"><tr><th class="px-6 py-4">ID</th><th class="px-6 py-4">User</th><th class="px-6 py-4">Gói</th><th class="px-6 py-4">Hết hạn</th><th class="px-6 py-4">Status</th><th class="px-6 py-4">Action</th></tr></thead><tbody id="full-user-table-body" class="divide-y divide-gray-800"></tbody></table></div></div></div></div>
+    <!-- Modal Quản Lý Thành Viên -->
+    <div id="user-list-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer" onclick="closeUserListModal()"></div>
+        <div class="absolute top-1/2 left-1/2 w-[90%] max-w-4xl h-[80vh] modal-enter origin-center transform -translate-x-1/2 -translate-y-1/2 z-50">
+            <div class="glass rounded-2xl overflow-hidden shadow-2xl border border-indigo-500/30 flex flex-col h-full">
+                <div class="p-5 border-b border-white/10 flex justify-between items-center bg-gray-900/50">
+                    <h3 class="text-xl font-bold text-white">Quản Lý Thành Viên</h3>
+                    <button onclick="closeUserListModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="flex-grow overflow-y-auto custom-scroll p-0">
+                    <table class="w-full text-sm text-left text-gray-400">
+                        <thead class="text-xs text-gray-500 uppercase bg-black/30 sticky top-0 backdrop-blur-md">
+                            <tr><th class="px-6 py-4">ID</th><th class="px-6 py-4">Tài khoản</th><th class="px-6 py-4">Gói</th><th class="px-6 py-4">Hết hạn</th><th class="px-6 py-4">Trạng thái</th><th class="px-6 py-4">Thao tác</th></tr>
+                        </thead>
+                        <tbody id="full-user-table-body" class="divide-y divide-gray-800"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <div id="action-modal" class="fixed inset-0 z-[60] hidden"><div class="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer" onclick="closeActionModal()"></div><div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-sm px-4 modal-enter z-[70]"><div class="glass rounded-2xl overflow-hidden shadow-2xl border border-indigo-500/50"><div class="p-6"><div class="text-center mb-6"><h3 class="text-lg font-bold text-white">Cấp quyền truy cập</h3><p class="text-xs text-gray-400 mt-1">User: <span id="action-username" class="text-white font-bold">...</span></p></div><div class="grid grid-cols-2 gap-3 mb-4"><button onclick="grantAccess(1)" class="p-3 bg-white/5 hover:bg-indigo-600 rounded-xl border border-white/10 text-xs font-bold text-white transition">Kích hoạt 1 Ngày</button><button onclick="grantAccess(30)" class="p-3 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl border border-white/10 text-xs font-bold text-white shadow-lg shadow-indigo-500/30 transition">Kích hoạt VIP (Thu 150k)</button></div><button onclick="grantAccess(-1)" class="w-full py-3 bg-red-500/10 hover:bg-red-600 border border-red-500/30 rounded-xl text-red-400 hover:text-white text-xs font-bold transition">KHÓA TÀI KHOẢN</button></div></div></div></div>
+    <!-- Modal Quản Lý Tài Khoản -->
+    <div id="action-modal" class="fixed inset-0 z-[60] hidden">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer" onclick="closeActionModal()"></div>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-sm px-4 modal-enter z-[70]">
+            <div class="glass rounded-2xl overflow-hidden shadow-2xl border border-indigo-500/50">
+                <div class="p-6">
+                    <div class="text-center mb-6"><h3 class="text-lg font-bold text-white">Quản lý tài khoản</h3><p class="text-xs text-gray-400 mt-1">User: <span id="action-username" class="text-white font-bold">...</span></p></div>
+                    <div class="grid grid-cols-1 gap-3">
+                        <button onclick="grantAccess(1)" class="py-3 bg-white/5 hover:bg-indigo-600 rounded-xl border border-white/10 text-xs font-bold text-white transition">Kích hoạt 1 Ngày</button>
+                        <button onclick="grantAccess(30)" class="py-3 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl border border-white/10 text-xs font-bold text-white shadow-lg shadow-indigo-500/30 transition">Kích hoạt VIP (30 ngày)</button>
+                        <button onclick="revokeVip()" class="py-3 bg-orange-600/20 hover:bg-orange-600 border border-orange-500/50 rounded-xl text-orange-400 hover:text-white font-bold text-xs transition">HỦY GÓI VIP</button>
+                        <button onclick="toggleBlock()" id="block-btn" class="py-3 bg-red-500/10 hover:bg-red-600 border border-red-500/30 rounded-xl text-red-400 hover:text-white text-xs font-bold transition">KHÓA TÀI KHOẢN</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <div id="payment-modal" class="fixed inset-0 z-[60] hidden"><div class="absolute inset-0 bg-black/90 backdrop-blur-md cursor-pointer" onclick="closePaymentModal()"></div><div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md px-4 modal-enter z-[70]"><div class="glass rounded-2xl overflow-hidden shadow-2xl border border-yellow-500/50"><div class="p-8 text-center"><div class="w-20 h-20 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-yellow-500/20"><i class="fa-solid fa-crown text-4xl text-yellow-500 animate-pulse"></i></div><h2 class="text-2xl font-bold text-white mb-2">Tính Năng VIP</h2><p class="text-gray-300 text-sm mb-6">Bạn cần nâng cấp tài khoản để sử dụng Auto.<br>Vui lòng liên hệ Admin để kích hoạt.</p><div class="bg-white/5 p-4 rounded-xl border border-white/10 mb-6 text-left"><div class="text-xs text-gray-500 font-bold uppercase mb-2">Liên hệ Admin:</div><a href="https://www.facebook.com/PhamHoangVngw" target="_blank" class="flex items-center gap-3 p-2 hover:bg-white/5 rounded transition cursor-pointer"><i class="fa-brands fa-facebook text-blue-500 text-xl"></i><span class="text-white font-bold text-sm">PhamHoangVngw</span></a><div class="flex items-center gap-3 p-2 hover:bg-white/5 rounded transition cursor-pointer" onclick="copyZalo()"><i class="fa-solid fa-phone text-green-500 text-xl"></i><span class="text-white font-bold text-sm">0795616819 (Zalo)</span></div></div><button onclick="closePaymentModal()" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded-xl transition cursor-pointer">Để sau</button></div></div></div></div>
+    <!-- Modal Yêu Cầu VIP -->
+    <div id="payment-modal" class="fixed inset-0 z-[60] hidden">
+        <div class="absolute inset-0 bg-black/90 backdrop-blur-md cursor-pointer" onclick="closePaymentModal()"></div>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md px-4 modal-enter z-[70]">
+            <div class="glass rounded-2xl overflow-hidden shadow-2xl border border-yellow-500/50">
+                <div class="p-8 text-center">
+                    <div class="w-20 h-20 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-yellow-500/20"><i class="fa-solid fa-crown text-4xl text-yellow-500 animate-pulse"></i></div>
+                    <h2 class="text-2xl font-bold text-white mb-2">Tính Năng VIP</h2>
+                    <p class="text-gray-300 text-sm mb-6">Bạn cần nâng cấp tài khoản để sử dụng Auto.<br>Vui lòng liên hệ Admin để kích hoạt.</p>
+                    <div class="bg-white/5 p-4 rounded-xl border border-white/10 mb-6 text-left">
+                        <div class="text-xs text-gray-500 font-bold uppercase mb-2">Liên hệ Admin:</div>
+                        <a href="https://www.facebook.com/PhamHoangVngw" target="_blank" class="flex items-center gap-3 p-2 hover:bg-white/5 rounded transition cursor-pointer"><i class="fa-brands fa-facebook text-blue-500 text-xl"></i><span class="text-white font-bold text-sm">PhamHoangVngw</span></a>
+                        <div class="flex items-center gap-3 p-2 hover:bg-white/5 rounded transition cursor-pointer" onclick="copyZalo()"><i class="fa-solid fa-phone text-green-500 text-xl"></i><span class="text-white font-bold text-sm">0795616819 (Zalo)</span></div>
+                    </div>
+                    <button onclick="closePaymentModal()" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded-xl transition cursor-pointer">Để sau</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // --- DATA & LOGIC ---
         const DB_USERS_KEY = 'nebula_users_v1';
         const DB_ORDERS_KEY = 'nebula_orders_v1';
-        const DB_SESSION_KEY = 'nebula_session_v1'; // NEW KEY FOR LOGIN SESSION
-        const PRICE_VIP = 150000; 
-
+        const DB_SESSION_KEY = 'nebula_session_v1';
+        const WELCOME_HIDE_KEY = 'welcome_hidden_until';
+        const PRICE_VIP = 150000;
         let usersDB = [];
         let ordersDB = [];
+        let currentUser = null;
+        let selectedUserId = null;
+        let selectedOrderId = null;
+        let pollingInterval = null;
+        let lastLog = '';
 
         function loadData() {
             const u = localStorage.getItem(DB_USERS_KEY);
             const o = localStorage.getItem(DB_ORDERS_KEY);
-            
-            if (u) { usersDB = JSON.parse(u); } 
-            
-            if (!usersDB.find(x => x.user === 'admin')) {
-                usersDB.unshift({ id: 1, user: 'admin', pass: '123', role: 'ADMIN', status: 'active', exp: 'Vĩnh viễn' });
-                saveData(); 
-            }
-
+            if (u) usersDB = JSON.parse(u);
             if (o) ordersDB = JSON.parse(o);
-            
-            // CHECK AUTO LOGIN
+
+            if (!usersDB.find(x => x.user === 'admin')) {
+                usersDB.unshift({ id: 1, user: 'admin', pass: 'Hoangvuonglop5d@', role: 'ADMIN', status: 'active', exp: 'Vĩnh viễn' });
+                saveData();
+            }
             checkSession();
         }
 
-        // --- NEW FUNCTION: CHECK AUTO LOGIN ---
         function checkSession() {
             const savedUser = localStorage.getItem(DB_SESSION_KEY);
             if (savedUser) {
-                // If found session, find that user in DB (to get latest role/status)
                 const userObj = usersDB.find(u => u.user === savedUser);
-                if (userObj) {
-                    if (userObj.status === 'blocked') {
-                        // If blocked, clear session
-                        localStorage.removeItem(DB_SESSION_KEY);
-                        return;
-                    }
-                    // Auto login success
+                if (userObj && userObj.status !== 'blocked') {
                     currentUser = userObj;
-                    // Directly enter system without waiting (removed setTimeout for instant load)
                     enterSystem();
                 }
             }
@@ -276,108 +469,456 @@
         function saveData() {
             localStorage.setItem(DB_USERS_KEY, JSON.stringify(usersDB));
             localStorage.setItem(DB_ORDERS_KEY, JSON.stringify(ordersDB));
-            if(currentUser && currentUser.role === 'ADMIN') {
-                renderUserTable(); renderOrderTable(); renderStats();
-            }
-            if(currentUser && currentUser.role !== 'ADMIN') {
-                renderClientOrders();
+            if (currentUser && currentUser.role !== 'ADMIN') renderClientOrders();
+            if (currentUser && currentUser.role === 'ADMIN') {
+                renderUserTable();
+                renderOrderTable();
+                renderStats();
             }
         }
 
-        // Init
-        let currentUser = null; 
-        let selectedUserId = null; 
-        let selectedOrderId = null;
-        
         loadData();
 
-        // --- CORE UI ---
-        const canvas = document.getElementById('particles-canvas'); const ctx = canvas.getContext('2d'); canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-        let particles = []; class Particle { constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.size = Math.random() * 2; this.speedX = Math.random() * 1 - 0.5; this.speedY = Math.random() * 1 - 0.5; } update() { this.x += this.speedX; this.y += this.speedY; if(this.x > canvas.width || this.x < 0) this.speedX *= -1; if(this.y > canvas.height || this.y < 0) this.speedY *= -1; } draw() { ctx.fillStyle = 'rgba(100, 100, 255, 0.3)'; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); } } function init() { for(let i=0; i<50; i++) particles.push(new Particle()); } function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); particles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animate); } init(); animate();
-
-        function switchAuthTab(tab) { const ind=document.getElementById('tab-indicator'), sl=document.getElementById('form-slider'), bl=document.getElementById('btn-tab-login'), br=document.getElementById('btn-tab-register'); if(tab==='login'){ ind.style.left='4px'; sl.style.transform='translateX(0)'; bl.classList.replace('text-gray-400','text-white'); br.classList.replace('text-white','text-gray-400'); } else{ ind.style.left='calc(50% + 0px)'; sl.style.transform='translateX(-50%)'; br.classList.replace('text-gray-400','text-white'); bl.classList.replace('text-white','text-gray-400'); } }
-        function showToast(t,m,type='success'){ const toast=document.getElementById('toast'), bg=document.getElementById('toast-icon-bg'), icon=document.getElementById('toast-icon'); document.getElementById('toast-title').innerText=t; document.getElementById('toast-msg').innerText=m; if(type==='success'){ toast.style.borderLeftColor='#22c55e'; bg.className='w-10 h-10 rounded-full flex items-center justify-center text-lg bg-green-500/20 text-green-400'; icon.className='fa-solid fa-circle-check'; } else if(type==='admin'){ toast.style.borderLeftColor='#f43f5e'; bg.className='w-10 h-10 rounded-full flex items-center justify-center text-lg bg-rose-500/20 text-rose-400'; icon.className='fa-solid fa-user-shield'; } else if(type==='process'){ toast.style.borderLeftColor='#38bdf8'; bg.className='w-10 h-10 rounded-full flex items-center justify-center text-lg bg-blue-500/20 text-blue-400'; icon.className='fa-solid fa-spinner fa-spin'; } else { toast.style.borderLeftColor='#f43f5e'; bg.className='w-10 h-10 rounded-full flex items-center justify-center text-lg bg-red-500/20 text-red-400'; icon.className='fa-solid fa-circle-exclamation'; } toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'),3500); }
-        
-        // --- LOGOUT MODIFIED ---
-        function logout() { 
-            localStorage.removeItem(DB_SESSION_KEY); // Clear session
-            location.reload(); 
+        // Particles (giữ nguyên)
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let particles = [];
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2;
+                this.speedX = Math.random() * 1 - 0.5;
+                this.speedY = Math.random() * 1 - 0.5;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x > canvas.width || this.x < 0) this.speedX *= -1;
+                if (this.y > canvas.height || this.y < 0) this.speedY *= -1;
+            }
+            draw() {
+                ctx.fillStyle = 'rgba(100, 100, 255, 0.3)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
         }
-        function copyZalo() { navigator.clipboard.writeText('0795616819'); showToast('Đã sao chép', 'Số Zalo đã lưu vào bộ nhớ tạm.', 'success'); }
+        function init() { for (let i = 0; i < 50; i++) particles.push(new Particle()); }
+        function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); particles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animate); }
+        init(); animate();
+        window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
 
-        // --- AUTH ---
-        function handleRegister() { 
-            const u=document.getElementById('reg-user').value.trim(); 
-            const p=document.getElementById('reg-pass').value.trim();
-            if(!u || !p){showToast('Lỗi','Vui lòng nhập đủ thông tin!','error');return;}
-            if(usersDB.find(x => x.user === u)) { showToast('Lỗi', 'Tên tài khoản đã tồn tại!', 'error'); return; }
+        function switchAuthTab(tab) {
+            const ind = document.getElementById('tab-indicator'), sl = document.getElementById('form-slider'), bl = document.getElementById('btn-tab-login'), br = document.getElementById('btn-tab-register');
+            if (tab === 'login') { ind.style.left = '4px'; sl.style.transform = 'translateX(0)'; bl.classList.replace('text-gray-400', 'text-white'); br.classList.replace('text-white', 'text-gray-400'); }
+            else { ind.style.left = 'calc(50% + 0px)'; sl.style.transform = 'translateX(-50%)'; br.classList.replace('text-gray-400', 'text-white'); bl.classList.replace('text-white', 'text-gray-400'); }
+        }
+
+        function showToast(t, m, type = 'success') {
+            const toast = document.getElementById('toast'), bg = document.getElementById('toast-icon-bg'), icon = document.getElementById('toast-icon');
+            document.getElementById('toast-title').innerText = t;
+            document.getElementById('toast-msg').innerHTML = m;
+            if (type === 'success') { toast.style.borderLeftColor = '#22c55e'; bg.className = 'w-10 h-10 rounded-full flex items-center justify-center text-lg bg-green-500/20 text-green-400'; icon.className = 'fa-solid fa-circle-check'; }
+            else if (type === 'process') { toast.style.borderLeftColor = '#38bdf8'; bg.className = 'w-10 h-10 rounded-full flex items-center justify-center text-lg bg-blue-500/20 text-blue-400'; icon.className = 'fa-solid fa-spinner fa-spin'; }
+            else { toast.style.borderLeftColor = '#f43f5e'; bg.className = 'w-10 h-10 rounded-full flex items-center justify-center text-lg bg-red-500/20 text-red-400'; icon.className = 'fa-solid fa-circle-exclamation'; }
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 4000);
+        }
+
+        function logout() {
+            if (pollingInterval) clearInterval(pollingInterval);
+            localStorage.removeItem(DB_SESSION_KEY);
+            location.reload();
+        }
+
+        function copyZalo() {
+            navigator.clipboard.writeText('0795616819');
+            showToast('Đã copy', 'Zalo: 0795616819', 'success');
+        }
+
+        function handleRegister() {
+            const u = document.getElementById('reg-user').value.trim();
+            const p = document.getElementById('reg-pass').value.trim();
+            if (!u || !p) { showToast('Lỗi', 'Nhập đủ thông tin!', 'error'); return; }
+            if (usersDB.find(x => x.user === u)) { showToast('Lỗi', 'Tài khoản đã tồn tại!', 'error'); return; }
             usersDB.push({ id: Date.now(), user: u, pass: p, role: 'Free', status: 'pending', exp: '-' });
             saveData();
-            showToast('Đăng ký thành công','Vui lòng đăng nhập!', 'success'); 
-            switchAuthTab('login'); document.getElementById('login-user').value=u; 
+            showToast('Thành công', 'Đăng ký OK!', 'success');
+            switchAuthTab('login'); document.getElementById('login-user').value = u;
         }
 
         function handleLogin() {
-            const u=document.getElementById('login-user').value.trim(), p=document.getElementById('login-pass').value.trim();
-            if(!u||!p){showToast('Lỗi','Vui lòng nhập đủ thông tin!','error');return;}
+            const u = document.getElementById('login-user').value.trim(), p = document.getElementById('login-pass').value.trim();
+            if (!u || !p) { showToast('Lỗi', 'Nhập đủ thông tin!', 'error'); return; }
             const userObj = usersDB.find(x => x.user === u && x.pass === p);
-            if(!userObj){ showToast('Lỗi', 'Sai tên đăng nhập hoặc mật khẩu!', 'error'); return; }
-            if (userObj.status === 'blocked') { showToast('Truy cập bị từ chối', 'Tài khoản của bạn đã bị khóa.', 'error'); return; }
-
-            // SAVE SESSION HERE
+            if (!userObj) { showToast('Lỗi', 'Sai tài khoản/mật khẩu!', 'error'); return; }
+            if (userObj.status === 'blocked') { showToast('Bị khóa', 'Tài khoản đã bị khóa!', 'error'); return; }
             localStorage.setItem(DB_SESSION_KEY, userObj.user);
-
-            showToast('Thành công', 'Đăng nhập hệ thống...', 'success');
+            showToast('Đăng nhập', 'Chào mừng!', 'success');
             currentUser = userObj;
             setTimeout(() => enterSystem(), 1000);
         }
 
         function enterSystem() {
-            document.getElementById('view-auth').style.opacity='0';
-            document.getElementById('view-auth').style.display='none'; 
-            document.getElementById('view-dashboard').classList.remove('hidden'); 
-            document.getElementById('view-dashboard').style.opacity='1';
+            document.getElementById('view-auth').style.opacity = '0';
+            document.getElementById('view-auth').style.display = 'none';
+            document.getElementById('view-dashboard').classList.remove('hidden');
+            document.getElementById('view-dashboard').style.opacity = '1';
             document.getElementById('display-name').innerText = currentUser.user;
-            
+
             const pb = document.getElementById('user-plan-badge'), sb = document.getElementById('user-status-badge');
-            if (currentUser.role === 'ADMIN') { 
-                pb.innerText = 'QUẢN TRỊ VIÊN'; pb.className = 'text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30'; 
-                sb.innerText = 'SYSTEM GOD'; sb.className = 'text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold border border-rose-500/30';
+            if (currentUser.role === 'ADMIN') {
+                pb.innerText = 'QUẢN TRỊ VIÊN'; pb.className = 'text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30';
+                sb.innerText = 'TOÀN QUYỀN'; sb.className = 'text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold border border-rose-500/30';
             } else if (currentUser.role === 'PRO') {
-                pb.innerText = 'GÓI VIP'; pb.className = 'text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30'; 
-                sb.innerText = 'ĐANG HOẠT ĐỘNG'; sb.className = 'text-[10px] px-2 py-0.5 rounded bg-green-500/20 text-green-400 font-bold border border-green-500/30'; 
-            } else { 
-                pb.innerText = 'MIỄN PHÍ'; pb.className = 'text-[10px] px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-bold border border-white/10'; 
-                sb.innerText = 'CHƯA KÍCH HOẠT'; sb.className = 'text-[10px] px-2 py-0.5 rounded bg-yellow-500/10 text-yellow-500 font-bold border border-yellow-500/20'; 
+                pb.innerText = 'GÓI VIP'; pb.className = 'text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30';
+                sb.innerText = 'HOẠT ĐỘNG'; sb.className = 'text-[10px] px-2 py-0.5 rounded bg-green-500/20 text-green-400 font-bold border border-green-500/30';
+            } else {
+                pb.innerText = 'MIỄN PHÍ'; pb.className = 'text-[10px] px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-bold border border-white/10';
+                sb.innerText = 'CHƯA KÍCH HOẠT'; sb.className = 'text-[10px] px-2 py-0.5 rounded bg-yellow-500/10 text-yellow-500 font-bold border border-yellow-500/20';
             }
 
-            if(currentUser.role === 'ADMIN'){
-                document.getElementById('admin-panel').classList.remove('hidden'); 
+            if (currentUser.role === 'ADMIN') {
+                document.getElementById('admin-panel').classList.remove('hidden');
                 document.getElementById('client-panel').classList.add('hidden');
-                document.getElementById('nav-logo').classList.replace('bg-indigo-600','admin-bg'); 
-                document.getElementById('nav-role').innerText="BẢNG QUẢN TRỊ"; 
-                document.getElementById('nav-role').classList.replace('text-indigo-300','text-rose-300');
+                document.getElementById('nav-logo').classList.replace('bg-indigo-600', 'admin-bg');
+                document.getElementById('nav-role').innerText = "BẢNG QUẢN TRỊ";
+                document.getElementById('nav-role').classList.replace('text-indigo-300', 'text-rose-300');
                 renderUserTable(); renderOrderTable(); renderStats();
             } else {
-                document.getElementById('admin-panel').classList.add('hidden'); 
+                document.getElementById('admin-panel').classList.add('hidden');
                 document.getElementById('client-panel').classList.remove('hidden');
                 renderClientOrders();
             }
+
+            if (currentUser.role !== 'ADMIN') {
+                const hideUntil = localStorage.getItem(WELCOME_HIDE_KEY);
+                if (!hideUntil || Date.now() > parseInt(hideUntil)) {
+                    setTimeout(() => document.getElementById('welcome-modal').classList.add('show'), 800);
+                }
+            }
+
+            startRealTimePolling();
         }
 
-        // --- CLIENT HISTORY ---
-        function renderClientOrders() {
-            const tbody = document.getElementById('client-history-body');
-            tbody.innerHTML = '';
-            const myOrders = ordersDB.filter(o => o.user === currentUser.user);
-            if(myOrders.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-gray-500 italic">Bạn chưa có đơn hàng nào.</td></tr>'; return; }
-            myOrders.forEach(o => {
-                let stBadge = o.status==='done'?'<span class="status-badge st-success">Hoàn tất</span>':(o.status==='processing'?'<span class="status-badge st-process">Đang xử lý</span>':'<span class="status-badge st-error">Thất bại</span>');
-                tbody.innerHTML += `<tr class="table-row"><td class="px-6 py-4 font-mono text-white">${o.time}</td><td class="px-6 py-4 text-xs font-bold text-indigo-300">Đăng Ký Tín Chỉ</td><td class="px-6 py-4 text-white">${o.items.length} lớp</td><td class="px-6 py-4">${stBadge}</td></tr>`;
+        function hideWelcomeFor2Hours() {
+            localStorage.setItem(WELCOME_HIDE_KEY, (Date.now() + 2 * 60 * 60 * 1000).toString());
+            closeWelcomeModal();
+            showToast('Đã ẩn', 'Không hiện trong 2 tiếng', 'success');
+        }
+
+        function closeWelcomeModal() {
+            document.getElementById('welcome-modal').classList.remove('show');
+        }
+
+        // POLLING VÀ XỬ LÝ LOG + KẾT QUẢ
+        function startRealTimePolling() {
+            if (pollingInterval) clearInterval(pollingInterval);
+
+            pollingInterval = setInterval(async () => {
+                try {
+                    const res = await fetch('http://127.0.0.1:5000/status');
+                    if (!res.ok) return;
+                    const logText = await res.text();
+
+                    if (logText === lastLog) return;
+                    lastLog = logText;
+
+                    const runningOrder = ordersDB.find(o => o.status === 'processing');
+                    if (!runningOrder) return;
+
+                    // Lưu full log cho admin
+                    runningOrder.fullLog = logText;
+
+                    // Trích xuất kết quả từng lớp từ log
+                    const lines = logText.split('\n');
+                    let currentCode = null;
+
+                    for (const line of lines) {
+                        if (line.includes('⚡ Đang xử lý:')) {
+                            currentCode = line.split('⚡ Đang xử lý:')[1]?.trim();
+                        }
+                        if (line.includes('🎉 ĐĂNG KÝ THÀNH CÔNG!') && currentCode) {
+                            const item = runningOrder.items.find(i => i.code === currentCode);
+                            if (item) {
+                                item.status = 'success';
+                                item.message = 'Đăng ký thành công';
+                            }
+                        }
+                        if (line.includes('❌ Không thể đăng ký:') && currentCode) {
+                            const msg = line.split('❌ Không thể đăng ký:')[1]?.trim();
+                            const item = runningOrder.items.find(i => i.code === currentCode);
+                            if (item) {
+                                item.status = 'error';
+                                item.message = msg || 'Lỗi không xác định';
+                            }
+                        }
+                    }
+
+                    // Kiểm tra hoàn thành tool
+                    if (logText.includes('🎉 Đã xử lý hết tất cả lớp!') || logText.includes('🏁 HOÀN THÀNH TOOL CHO')) {
+                        runningOrder.status = 'done';
+                        // Đảm bảo mọi lớp đều có trạng thái
+                        runningOrder.items.forEach(item => {
+                            if (!item.status) {
+                                item.status = 'error';
+                                item.message = 'Không thể đăng ký (lỗi không rõ)';
+                            }
+                        });
+                        saveData();
+                        renderClientOrders();
+                        if (currentUser.role === 'ADMIN') renderOrderTable();
+                        showToast('Hoàn tất!', 'Tool đã chạy xong', 'success');
+
+                        if (!document.getElementById('order-detail-modal').classList.contains('hidden')) {
+                            viewOrderDetails(runningOrder.id);
+                        }
+                    } else {
+                        saveData();
+                        renderClientOrders();
+                        if (currentUser.role === 'ADMIN') renderOrderTable();
+                    }
+                } catch (e) {
+                    console.error("Polling error:", e);
+                }
+            }, 1500);
+        }
+
+        function hasPermissionToControlOrder() {
+            if (currentUser.role === 'ADMIN') return true;
+            const order = ordersDB.find(o => o.id === selectedOrderId);
+            if (!order) return false;
+            return order.user === currentUser.user && currentUser.role === 'PRO';
+        }
+
+        function viewOrderDetails(id) {
+            selectedOrderId = id;
+            const order = ordersDB.find(x => x.id === id);
+            if (!order) return;
+
+            document.getElementById('detail-user').innerText = order.user;
+            document.getElementById('detail-dtu-user').innerText = order.dtuUser || 'Không có';
+            document.getElementById('detail-dtu-pass').innerText = order.dtuPass || 'Không có';
+
+            const customer = usersDB.find(u => u.user === order.user);
+            const planStatusEl = document.getElementById('detail-plan-status');
+            if (customer && customer.role === 'PRO' && customer.status === 'active') {
+                planStatusEl.innerHTML = `<i class="fa-solid fa-check-circle text-green-400 mr-2"></i><span class="text-green-400">VIP còn hạn (${customer.exp})</span>`;
+                planStatusEl.className = 'mb-4 p-3 rounded-lg text-center font-bold text-sm bg-green-500/10 border border-green-500/30';
+            } else {
+                planStatusEl.innerHTML = `<i class="fa-solid fa-exclamation-triangle text-orange-400 mr-2"></i><span class="text-orange-400">Hết hoặc chưa có VIP</span>`;
+                planStatusEl.className = 'mb-4 p-3 rounded-lg text-center font-bold text-sm bg-orange-500/10 border border-orange-500/30';
+            }
+
+            // Ẩn/hiện log server
+            const adminLogSection = document.getElementById('admin-log-section');
+            const logEl = document.getElementById('detail-live-log');
+            if (currentUser.role === 'ADMIN' && order.fullLog) {
+                adminLogSection.classList.remove('hidden');
+                logEl.innerHTML = order.fullLog.replace(/\n/g, '<br>');
+                logEl.scrollTop = logEl.scrollHeight;
+            } else {
+                adminLogSection.classList.add('hidden');
+            }
+
+            // Hiển thị kết quả từng lớp
+            const itemsDiv = document.getElementById('detail-items');
+            itemsDiv.innerHTML = '';
+            order.items.forEach(item => {
+                const isSuccess = item.status === 'success';
+                const color = isSuccess ? 'text-green-400' : 'text-red-400';
+                const icon = isSuccess ? 'fa-check-circle' : 'fa-times-circle';
+                const message = item.message || (isSuccess ? 'Đăng ký thành công' : 'Lỗi');
+                itemsDiv.innerHTML += `
+                <tr class="border-b border-white/5">
+                    <td class="py-3 font-mono font-bold text-white">${item.code}</td>
+                    <td class="py-3 text-right ${color}">
+                        <i class="fa-solid ${icon} mr-2"></i>${message}
+                    </td>
+                </tr>`;
+            });
+
+            // Quyền chạy lại / hoàn tất
+            const canControl = hasPermissionToControlOrder();
+            document.getElementById('btn-rerun').disabled = !canControl;
+            document.getElementById('btn-rerun').classList.toggle('opacity-50', !canControl);
+            document.getElementById('btn-rerun').classList.toggle('cursor-not-allowed', !canControl);
+            document.getElementById('btn-complete').disabled = !canControl;
+            document.getElementById('btn-complete').classList.toggle('opacity-50', !canControl);
+            document.getElementById('btn-complete').classList.toggle('cursor-not-allowed', !canControl);
+
+            document.getElementById('order-detail-modal').classList.remove('hidden');
+        }
+
+        function closeOrderDetailModal() {
+            document.getElementById('order-detail-modal').classList.add('hidden');
+        }
+
+        function rerunOrder() {
+            if (!hasPermissionToControlOrder()) {
+                showToast('Không có quyền', 'Chỉ VIP hoặc Admin được chạy lại!', 'error');
+                return;
+            }
+
+            const order = ordersDB.find(o => o.id === selectedOrderId);
+            if (!order) return;
+
+            order.items.forEach(item => {
+                item.status = 'pending';
+                item.message = 'Đang xử lý...';
+            });
+            order.status = 'processing';
+            order.time = new Date().toLocaleTimeString();
+            delete order.fullLog; // Xóa log cũ
+
+            saveData();
+            renderOrderTable();
+            renderClientOrders();
+
+            showToast('Đã gửi', 'Chạy lại tool...', 'process');
+
+            fetch('http://127.0.0.1:5000/run-auto', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user: order.dtuUser, pass: order.dtuPass, codes: order.items.map(i => i.code).join(',') })
+            })
+            .then(r => r.json())
+            .then(data => {
+                showToast('Server', data.status === 'success' ? 'Đang chạy lại!' : 'Lỗi server', data.status === 'success' ? 'success' : 'error');
+            })
+            .catch(() => {
+                showToast('Lỗi', 'Không kết nối server!', 'error');
             });
         }
 
-        // --- ADMIN & TOOLS ---
+        function updateOrderStatus(newStatus) {
+            if (newStatus === 'completed' && !hasPermissionToControlOrder()) {
+                showToast('Không có quyền', 'Chỉ VIP hoặc Admin được hoàn tất!', 'error');
+                return;
+            }
+
+            const order = ordersDB.find(o => o.id === selectedOrderId);
+            if (!order) return;
+
+            order.status = newStatus === 'completed' ? 'done' : 'cancelled';
+            saveData();
+            renderOrderTable();
+            renderClientOrders();
+
+            showToast('Thành công', newStatus === 'completed' ? 'Đơn hoàn tất' : 'Đơn đã hủy', 'success');
+
+            closeOrderDetailModal();
+        }
+
+        function runSimulation() {
+            let dtuUser = document.getElementById('tool-dtu-user').value.trim();
+            let dtuPass = document.getElementById('tool-dtu-pass').value;
+            let codes = document.getElementById('tool-codes').value;
+           
+            codes = codes.replace(/\n/g, ",").trim();
+            if(currentUser.role !== 'ADMIN' && currentUser.role !== 'PRO'){
+                document.getElementById('payment-modal').classList.remove('hidden');
+                return;
+            }
+            if (!dtuUser || !dtuPass || !codes) {
+                showToast('Lỗi', 'Nhập đủ thông tin!', 'error');
+                return;
+            }
+            ordersDB.unshift({
+                id: Date.now(),
+                user: currentUser.user,
+                dtuUser: dtuUser,
+                dtuPass: dtuPass,
+                service: 'Tín Chỉ Auto',
+                items: codes.split(',').map(c => ({code: c.trim(), status: 'pending', message: 'Đang xử lý...'})),
+                status: 'processing',
+                time: new Date().toLocaleTimeString()
+            });
+            saveData();
+            renderClientOrders();
+            showToast('Đã nhận', 'Gửi đến server...', 'success');
+            closeToolModal();
+
+            fetch('http://127.0.0.1:5000/run-auto', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user: dtuUser, pass: dtuPass, codes: codes })
+            })
+            .then(response => response.json())
+            .then(data => {
+                showToast('Server', data.status === 'success' ? 'Bắt đầu chạy!' : 'Lỗi server', data.status === 'success' ? 'success' : 'error');
+            })
+            .catch(() => {
+                showToast('Lỗi', 'Không kết nối server!', 'error');
+            });
+        }
+
+        function renderClientOrders() {
+            const tbody = document.getElementById('client-history-body');
+            tbody.innerHTML = '';
+            const myOrders = ordersDB.filter(o => o.user === currentUser.user).sort((a,b) => b.id - a.id);
+            if(myOrders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-gray-500 italic">Chưa có đơn hàng</td></tr>';
+                return;
+            }
+            myOrders.forEach(o => {
+                let stBadge = o.status==='done'?'<span class="status-badge st-done">Hoàn tất</span>':(o.status==='processing'?'<span class="status-badge st-process">Đang xử lý</span>':'<span class="status-badge st-error">Thất bại</span>');
+                let resultText = o.items.length + ' lớp';
+                if (o.status === 'done') {
+                    const successCount = o.items.filter(i => i.status === 'success').length;
+                    resultText = `<strong>${successCount}/${o.items.length}</strong> thành công`;
+                }
+                tbody.innerHTML += `
+                <tr class="table-row" onclick="viewOrderDetails(${o.id})">
+                    <td class="px-6 py-4 font-mono text-white">${o.time}</td>
+                    <td class="px-6 py-4 text-xs font-bold text-indigo-300">Đăng Ký Tín Chỉ</td>
+                    <td class="px-6 py-4 text-white">${resultText}</td>
+                    <td class="px-6 py-4">${stBadge}</td>
+                </tr>`;
+            });
+        }
+
+        function renderUserTable() {
+            const tbody = document.getElementById('user-table-body');
+            const fullTbody = document.getElementById('full-user-table-body');
+            tbody.innerHTML = '';
+            if (fullTbody) fullTbody.innerHTML = '';
+            const sortedUsers = [...usersDB].sort((a, b) => (a.status === 'pending' ? -1 : 1));
+            sortedUsers.forEach((u, idx) => {
+                const stCls = u.status === 'active' ? 'st-success' : (u.status === 'blocked' ? 'st-error' : 'st-pending');
+                const stText = u.status === 'active' ? 'Hoạt động' : (u.status === 'blocked' ? 'Đã khóa' : 'Chờ duyệt');
+                if (idx < 5) {
+                    tbody.innerHTML += `<tr class="table-row">
+                        <td class="px-6 py-4 font-bold text-white">${u.user}</td>
+                        <td class="px-6 py-4 ${u.role === 'PRO' ? 'text-indigo-400 font-bold' : ''}">${u.role}</td>
+                        <td class="px-6 py-4"><span class="status-badge ${stCls}">${stText}</span></td>
+                        <td class="px-6 py-4">${u.role !== 'ADMIN' ? `<button onclick="openActionMenu(${u.id})" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center transition"><i class="fa-solid fa-ellipsis-vertical"></i></button>` : ''}</td>
+                    </tr>`;
+                }
+                if (fullTbody) {
+                    fullTbody.innerHTML += `<tr class="table-row">
+                        <td class="px-6 py-4 text-xs">#${u.id}</td>
+                        <td class="px-6 py-4 font-bold text-white">${u.user}</td>
+                        <td class="px-6 py-4 text-indigo-300">${u.role}</td>
+                        <td class="px-6 py-4 text-xs font-mono">${u.exp}</td>
+                        <td class="px-6 py-4"><span class="status-badge ${stCls}">${stText}</span></td>
+                        <td class="px-6 py-4">${u.role !== 'ADMIN' ? `<button onclick="openActionMenu(${u.id})" class="text-xs bg-indigo-500/20 hover:bg-indigo-500 text-indigo-400 hover:text-white px-3 py-1 rounded transition">Quản lý</button>` : '<span class="text-xs text-gray-600">Admin</span>'}</td>
+                    </tr>`;
+                }
+            });
+        }
+
+        function renderOrderTable() {
+            const tbody = document.getElementById('order-table-body'); tbody.innerHTML = '';
+            ordersDB.forEach(o => {
+                let stBadge = o.status==='done'?'<span class="status-badge st-done">Hoàn tất</span>':(o.status==='processing'?'<span class="status-badge st-process">Đang xử lý</span>':'<span class="status-badge st-error">Thất bại</span>');
+                tbody.innerHTML += `<tr class="table-row"><td class="px-4 py-3 font-bold text-white">${o.user}</td><td class="px-4 py-3 text-xs">Đăng Ký Tín Chỉ</td><td class="px-4 py-3"><button onclick="viewOrderDetails(${o.id})" class="text-xs text-indigo-400 hover:text-white underline">Chi tiết</button></td><td class="px-4 py-3">${stBadge}</td></tr>`;
+            });
+        }
+
         function renderStats() {
             const proUsers = usersDB.filter(u => u.role === 'PRO').length;
             const revenue = proUsers * PRICE_VIP;
@@ -388,103 +929,66 @@
             document.getElementById('stat-revenue').innerText = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(revenue).replace('₫', 'đ');
         }
 
-        function renderUserTable() {
-            const tbody=document.getElementById('user-table-body'), fullTbody=document.getElementById('full-user-table-body');
-            tbody.innerHTML=''; fullTbody.innerHTML=''; 
-            const sortedUsers = [...usersDB].sort((a,b) => (a.status === 'pending' ? -1 : 1));
-            sortedUsers.forEach((u,idx)=>{
-                const stCls=u.status==='active'?'st-success':(u.status==='blocked'?'st-error':'st-pending');
-                const stText = u.status === 'active' ? 'Active' : (u.status === 'blocked' ? 'Blocked' : 'Waiting');
-                if(idx<5){
-                    tbody.innerHTML+=`<tr class="table-row"><td class="px-6 py-4 font-bold text-white">${u.user}</td><td class="px-6 py-4 ${u.role==='PRO'?'text-indigo-400 font-bold':''}">${u.role}</td><td class="px-6 py-4"><span class="status-badge ${stCls}">${stText}</span></td><td class="px-6 py-4">${u.role!=='ADMIN'?`<button onclick="openActionMenu(${u.id})" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center transition"><i class="fa-solid fa-ellipsis-vertical"></i></button>`:''}</td></tr>`;
-                }
-                fullTbody.innerHTML+=`<tr class="table-row"><td class="px-6 py-4 text-xs">#${u.id}</td><td class="px-6 py-4 font-bold text-white">${u.user}</td><td class="px-6 py-4 text-indigo-300">${u.role}</td><td class="px-6 py-4 text-xs font-mono">${u.exp}</td><td class="px-6 py-4"><span class="status-badge ${stCls}">${stText}</span></td><td class="px-6 py-4">${u.role!=='ADMIN'?`<button onclick="openActionMenu(${u.id})" class="text-xs bg-indigo-500/20 hover:bg-indigo-500 text-indigo-400 hover:text-white px-3 py-1 rounded transition">Quản lý</button>`:'<span class="text-xs text-gray-600">Locked</span>'}</td></tr>`;
-            });
+        function closeToolModal() { document.getElementById('tool-modal').classList.add('hidden'); }
+        function openToolModal() { if(currentUser.role === 'PRO' || currentUser.role === 'ADMIN') document.getElementById('tool-modal').classList.remove('hidden'); else document.getElementById('payment-modal').classList.remove('hidden'); }
+        function closePaymentModal() { document.getElementById('payment-modal').classList.add('hidden'); }
+        function closeUserListModal() { document.getElementById('user-list-modal').classList.add('hidden'); }
+        function openUserListModal() { renderUserTable(); document.getElementById('user-list-modal').classList.remove('hidden'); }
+
+        function openActionMenu(id) {
+            selectedUserId = id;
+            const u = usersDB.find(x => x.id === id);
+            document.getElementById('action-username').innerText = u.user;
+            const blockBtn = document.getElementById('block-btn');
+            if (u.status === 'blocked') {
+                blockBtn.innerText = 'MỞ KHÓA';
+                blockBtn.className = 'py-3 bg-green-600/20 hover:bg-green-600 border border-green-500/50 rounded-xl text-green-400 hover:text-white text-xs font-bold transition';
+            } else {
+                blockBtn.innerText = 'KHÓA TÀI KHOẢN';
+                blockBtn.className = 'py-3 bg-red-500/10 hover:bg-red-600 border border-red-500/30 rounded-xl text-red-400 hover:text-white text-xs font-bold transition';
+            }
+            document.getElementById('action-modal').classList.remove('hidden');
         }
 
-        function renderOrderTable() {
-            const tbody = document.getElementById('order-table-body'); tbody.innerHTML = '';
-            ordersDB.forEach(o => {
-                let stBadge = o.status==='done'?'<span class="status-badge st-success">Hoàn tất</span>':(o.status==='processing'?'<span class="status-badge st-process">Đang xử lý</span>':'<span class="status-badge st-error">Thất bại</span>');
-                tbody.innerHTML += `<tr class="table-row"><td class="px-4 py-3 font-bold text-white">${o.user}</td><td class="px-4 py-3 text-xs">Đăng Ký Tín Chỉ</td><td class="px-4 py-3"><button onclick="viewOrderDetails(${o.id})" class="text-xs text-indigo-400 hover:text-white underline">Chi tiết</button></td><td class="px-4 py-3">${stBadge}</td></tr>`;
-            });
+        function closeActionModal() {
+            document.getElementById('action-modal').classList.add('hidden');
         }
 
-        function viewOrderDetails(id) {
-            selectedOrderId = id;
-            const order = ordersDB.find(x => x.id === id);
-            document.getElementById('detail-user').innerText = order.user;
-            document.getElementById('detail-dtu-user').innerText = order.dtuUser || 'Không có';
-            document.getElementById('detail-dtu-pass').innerText = order.dtuPass || 'Không có';
-            const itemsDiv = document.getElementById('detail-items'); itemsDiv.innerHTML = '';
-            order.items.forEach(item => {
-                let color = item.status.includes('Thành công') ? 'text-green-400' : (item.status.includes('lý') ? 'text-blue-400' : 'text-red-400');
-                itemsDiv.innerHTML += `<tr class="border-b border-white/5"><td class="py-2 font-mono font-bold text-white">${item.code}</td><td class="py-2 text-right ${color}">${item.status}</td></tr>`;
-            });
-            document.getElementById('order-detail-modal').classList.remove('hidden');
-        }
-        function closeOrderDetailModal() { document.getElementById('order-detail-modal').classList.add('hidden'); }
-        function updateOrderStatus(status) {
-            const o = ordersDB.find(x => x.id === selectedOrderId);
-            o.status = status === 'completed' ? 'done' : 'failed';
+        function grantAccess(days) {
+            const u = usersDB.find(x => x.id === selectedUserId);
+            u.status = 'active';
+            u.role = 'PRO';
+            const d = new Date();
+            d.setDate(d.getDate() + days);
+            u.exp = d.toLocaleDateString('vi-VN');
             saveData();
-            showToast('Cập nhật', `Đơn hàng đã được đánh dấu là ${o.status}`, 'success');
-            closeOrderDetailModal(); 
+            closeActionModal();
+            showToast('Thành công', 'Kích hoạt VIP OK!', 'success');
         }
 
-        function rerunOrder() {
-            const order = ordersDB.find(x => x.id === selectedOrderId);
-            if (!order) { showToast('Lỗi', 'Không tìm thấy đơn hàng!', 'error'); return; }
-            const codes = order.items.map(item => item.code).join(', ');
-            showToast('Đang xử lý', `Đang kích hoạt lại Tool...`, 'process');
-            fetch('http://localhost:5000/run-auto', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user: order.dtuUser, pass: order.dtuPass, codes: codes })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if(data.status === 'success') {
-                    order.status = 'processing';
-                    order.items.forEach(i => i.status = 'Đang chạy lại...');
-                    saveData();
-                    renderOrderTable(); viewOrderDetails(selectedOrderId);
-                    showToast('Thành công', 'Tool đã bắt đầu chạy lại!', 'success');
-                } else { showToast('Lỗi Server', data.message, 'error'); }
-            })
-            .catch(error => { console.error(error); showToast('Lỗi kết nối', 'Server Python chưa bật!', 'error'); });
-        }
-
-        function openActionMenu(id){ selectedUserId=id; const u=usersDB.find(x=>x.id===id); document.getElementById('action-username').innerText=u.user; document.getElementById('action-modal').classList.remove('hidden'); }
-        function closeActionModal(){ document.getElementById('action-modal').classList.add('hidden'); }
-        
-        function grantAccess(days){ 
-            const u = usersDB.find(x => x.id === selectedUserId); 
-            if(days === -1){ u.status = 'blocked'; u.role = 'BANNED'; u.exp = 'Đã khóa'; } 
-            else { u.status = 'active'; u.role = 'PRO'; const d = new Date(); d.setDate(d.getDate() + days); u.exp = d.toLocaleDateString('vi-VN'); } 
-            saveData(); closeActionModal(); 
-            showToast('Thành công', 'Đã cập nhật trạng thái người dùng.', 'success'); 
-        }
-
-        function openUserListModal(){ document.getElementById('user-list-modal').classList.remove('hidden'); } function closeUserListModal(){ document.getElementById('user-list-modal').classList.add('hidden'); }
-        function openToolModal(){ if(currentUser.role !== 'ADMIN' && currentUser.role !== 'PRO') { showPaymentModal(); return; } document.getElementById('tool-modal').classList.remove('hidden'); } 
-        function closeToolModal(){ document.getElementById('tool-modal').classList.add('hidden'); }
-        function showPaymentModal(){ closeToolModal(); document.getElementById('payment-modal').classList.remove('hidden'); } 
-        function closePaymentModal(){ document.getElementById('payment-modal').classList.add('hidden'); }
-
-        function runSimulation(){ 
-            const btn=document.getElementById('btn-run');
-            let dtuUser = document.getElementById('tool-dtu-user').value;
-            let dtuPass = document.getElementById('tool-dtu-pass').value;
-            let codes = document.getElementById('tool-codes').value;
-            if(currentUser.role !== 'ADMIN' && currentUser.role !== 'PRO'){ showPaymentModal(); return; }
-            ordersDB.unshift({ id: Date.now(), user: currentUser.user, dtuUser: dtuUser, dtuPass: dtuPass, service: 'Tín Chỉ Auto', items: codes.split(',').map(c => ({code: c.trim(), status: 'Đang xử lý...'})), status: 'processing', time: new Date().toLocaleTimeString() }); 
+        function revokeVip() {
+            const u = usersDB.find(x => x.id === selectedUserId);
+            u.role = 'Free';
+            u.exp = '-';
             saveData();
-            showToast('Đã tiếp nhận', 'Đơn hàng đang được gửi tới Server...', 'success');
-            closeToolModal();
-            fetch('http://localhost:5000/run-auto', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user: dtuUser, pass: dtuPass, codes: codes }) })
-            .then(response => response.json()).then(data => { if(data.status === 'success') { showToast('Server phản hồi', 'Tool đã bắt đầu chạy!', 'success'); } else { showToast('Lỗi Server', data.message, 'error'); } })
-            .catch(error => { showToast('Lỗi kết nối', 'Không kết nối được Python Server', 'error'); });
+            closeActionModal();
+            showToast('Thành công', 'Hủy VIP OK', 'success');
+        }
+
+        function toggleBlock() {
+            const u = usersDB.find(x => x.id === selectedUserId);
+            if (u.status === 'blocked') {
+                u.status = 'active';
+                u.role = (u.role === 'BANNED') ? 'Free' : u.role;
+                showToast('Thành công', 'Mở khóa OK', 'success');
+            } else {
+                u.status = 'blocked';
+                u.role = 'BANNED';
+                u.exp = 'Đã khóa';
+                showToast('Thành công', 'Khóa tài khoản OK', 'success');
+            }
+            saveData();
+            closeActionModal();
         }
     </script>
 </body>
