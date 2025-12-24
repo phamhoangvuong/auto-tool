@@ -20,7 +20,7 @@ from datetime import datetime
 # SERVER SETUP
 # ==============================================================================
 app = Flask(__name__)
-CORS(app)  # Cho phép frontend gọi từ localhost
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Biến toàn cục lưu log real-time để trả về cho web
 current_log = ">>> 🌐 NEBULA DTU SNIPER SERVER ĐANG SẴN SÀNG...\n"
@@ -353,4 +353,5 @@ log.setLevel(logging.ERROR)
 # ==============================================================================
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
+
     app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
