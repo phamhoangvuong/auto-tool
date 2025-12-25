@@ -681,7 +681,7 @@
             showToast('Đã gửi', 'Đơn đã được gửi đến server...', 'success');
             closeToolModal();
 
-            fetch('http://103.116.52.136:5000/run-auto', {
+            fetch('https://lying-iso-could-situated.trycloudflare.com/run-auto', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user: dtuUser, pass: dtuPass, codes: codes })
@@ -715,7 +715,7 @@
             renderClientOrders();
             showToast('Đã gửi', 'Chạy lại tool...', 'process');
 
-            fetch('http://103.116.52.136:5000/run-auto', {
+            fetch('https://lying-iso-could-situated.trycloudflare.com/run-auto', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user: order.dtuUser, pass: order.dtuPass, codes: order.items.map(i => i.code).join(',') })
@@ -814,7 +814,7 @@
             let failCount = 0;
             pollingInterval = setInterval(async () => {
                 try {
-                    const res = await fetch('http://103.116.52.136:5000/status');
+                    const res = await fetch('https://lying-iso-could-situated.trycloudflare.com/status');
                     if (!res.ok) throw new Error('Not ok');
                     failCount = 0;
                     const logText = await res.text();
@@ -1044,6 +1044,3 @@
     </script>
 </body>
 </html>
-
-
-
