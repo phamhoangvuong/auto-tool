@@ -7,9 +7,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
     <style>
         :root {
             --primary: #6366f1; --admin: #f43f5e; --bg-dark: #020617;
@@ -37,7 +39,6 @@
         .st-error { background: rgba(244, 63, 94, 0.15); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.3); }
         .st-process { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); animation: pulse 2s infinite; }
         .st-done { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
-        .st-hang { background: rgba(251, 146, 60, 0.15); color: #fb923c; border: 1px solid rgba(251, 146, 60, 0.3); animation: pulse 2s infinite; } /* MỚI: Trạng thái Bị treo */
         .admin-bg { background: linear-gradient(135deg, var(--admin), #be123c) !important; }
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
@@ -96,6 +97,7 @@
                     <span class="text-yellow-400 text-lg">👑</span>
                     <strong>Admin: Phạm Hoàng Vương</strong>
                 </p>
+
                 <div>
                     <p class="font-bold text-orange-400 mb-2 flex items-center gap-2">
                         <span class="text-lg">⚠️</span> LƯU Ý QUAN TRỌNG
@@ -108,6 +110,7 @@
                         <li>Admin không chịu trách nhiệm nếu tài khoản bị khóa do vi phạm quy định trường.</li>
                     </ol>
                 </div>
+
                 <div>
                     <p class="font-bold text-green-400 mb-2 flex items-center gap-2">
                         <span class="text-lg">🔑</span> KÍCH HOẠT VIP
@@ -126,6 +129,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="mt-8 flex gap-3 justify-center">
                 <button onclick="hideWelcomeFor2Hours()" class="px-5 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-xs font-bold text-white transition">
                     Ẩn trong 2 tiếng
@@ -168,7 +172,7 @@
                     </div>
                 </div>
             </div>
-            <div class="py-4 bg-black/20 text-center text-[10px] text-gray-500 relative z-20">Hệ thống v2.7 - Hỗ trợ trạng thái "Bị treo"</div>
+            <div class="py-4 bg-black/20 text-center text-[10px] text-gray-500 relative z-20">Hệ thống v2.6 - Real-time Result & Log</div>
         </div>
     </div>
 
@@ -574,12 +578,7 @@
                 return;
             }
             myOrders.forEach(o => {
-                let stBadge;
-                if (o.status === 'done') stBadge = '<span class="status-badge st-done">Hoàn tất</span>';
-                else if (o.status === 'processing') stBadge = '<span class="status-badge st-process">Đang xử lý</span>';
-                else if (o.status === 'hang') stBadge = '<span class="status-badge st-hang">Bị treo</span>'; // MỚI
-                else stBadge = '<span class="status-badge st-error">Thất bại</span>';
-
+                let stBadge = o.status === 'done' ? '<span class="status-badge st-done">Hoàn tất</span>' : (o.status === 'processing' ? '<span class="status-badge st-process">Đang xử lý</span>' : '<span class="status-badge st-error">Thất bại</span>');
                 let resultText = o.items.length + ' lớp';
                 if (o.status === 'done') {
                     const successCount = o.items.filter(i => i.status === 'success').length;
@@ -595,16 +594,33 @@
             });
         }
 
-            function renderOrderTable() {
-            const tbody = document.getElementById('order-table-body');
+        function renderUserTable() {
+            const tbody = document.getElementById('user-table-body');
+            const fullTbody = document.getElementById('full-user-table-body');
             tbody.innerHTML = '';
-            ordersDB.forEach(o => {
-                let stBadge;
-                if (o.status === 'done') stBadge = '<span class="status-badge st-done">Hoàn tất</span>';
-                else if (o.status === 'processing') stBadge = '<span class="status-badge st-process">Đang xử lý</span>';
-                else if (o.status === 'hang') stBadge = '<span class="status-badge st-hang">Bị treo</span>'; // MỚI
-                else stBadge = '<span class="status-badge st-error">Thất bại</span>';
-                tbody.innerHTML += `<tr class="table-row"><td class="px-4 py-3 font-bold text-white">${o.user}</td><td class="px-4 py-3 text-xs">Đăng Ký Tín Chỉ</td><td class="px-4 py-3"><button onclick="viewOrderDetails('${o.id}')" class="text-xs text-indigo-400 hover:text-white underline">Chi tiết</button></td><td class="px-4 py-3">${stBadge}</td></tr>`;
+            if (fullTbody) fullTbody.innerHTML = '';
+            const sortedUsers = [...usersDB].sort((a, b) => (a.status === 'pending' ? -1 : 1));
+            sortedUsers.forEach((u, idx) => {
+                const stCls = u.status === 'active' ? 'st-success' : (u.status === 'blocked' ? 'st-error' : 'st-pending');
+                const stText = u.status === 'active' ? 'Hoạt động' : (u.status === 'blocked' ? 'Đã khóa' : 'Chờ duyệt');
+                if (idx < 5) {
+                    tbody.innerHTML += `<tr class="table-row">
+                        <td class="px-6 py-4 font-bold text-white">${u.user}</td>
+                        <td class="px-6 py-4 ${u.role === 'PRO' ? 'text-indigo-400 font-bold' : ''}">${u.role}</td>
+                        <td class="px-6 py-4"><span class="status-badge ${stCls}">${stText}</span></td>
+                        <td class="px-6 py-4">${u.role !== 'ADMIN' ? `<button onclick="openActionMenu('${u.user}')" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center transition"><i class="fa-solid fa-ellipsis-vertical"></i></button>` : ''}</td>
+                    </tr>`;
+                }
+                if (fullTbody) {
+                    fullTbody.innerHTML += `<tr class="table-row">
+                        <td class="px-6 py-4 text-xs">#${u.user}</td>
+                        <td class="px-6 py-4 font-bold text-white">${u.user}</td>
+                        <td class="px-6 py-4 text-indigo-300">${u.role}</td>
+                        <td class="px-6 py-4 text-xs font-mono">${u.exp}</td>
+                        <td class="px-6 py-4"><span class="status-badge ${stCls}">${stText}</span></td>
+                        <td class="px-6 py-4">${u.role !== 'ADMIN' ? `<button onclick="openActionMenu('${u.user}')" class="text-xs bg-indigo-500/20 hover:bg-indigo-500 text-indigo-400 hover:text-white px-3 py-1 rounded transition">Quản lý</button>` : '<span class="text-xs text-gray-600">Admin</span>'}</td>
+                    </tr>`;
+                }
             });
         }
 
@@ -665,28 +681,9 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user: dtuUser, pass: dtuPass, codes: codes })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    showToast('Server', 'Tool bắt đầu chạy!', 'success');
-                } else {
-                    // Nếu server trả lỗi → đánh dấu bị treo
-                    newOrder.status = 'hang';
-                    saveData();
-                    renderClientOrders();
-                    if (currentUser.role === 'ADMIN') renderOrderTable();
-                    showToast('Lỗi server', 'Tool không khởi động được → Đơn bị treo', 'error');
-                }
-            })
-            .catch(err => {
-                // Nếu không kết nối được server → đánh dấu bị treo
-                newOrder.status = 'hang';
-                saveData();
-                renderClientOrders();
-                if (currentUser.role === 'ADMIN') renderOrderTable();
-                showToast('Lỗi kết nối', 'Không liên lạc được server → Đơn bị treo', 'error');
-            });
+            }).then(r => r.json()).then(data => {
+                showToast('Server', data.status === 'success' ? 'Tool bắt đầu chạy!' : 'Lỗi khởi động', data.status === 'success' ? 'success' : 'error');
+            }).catch(() => showToast('Lỗi', 'Không kết nối được server!', 'error'));
         }
 
         function rerunOrder() {
@@ -696,20 +693,17 @@
             }
             const order = ordersDB.find(o => o.id === selectedOrderId);
             if (!order) return;
-
-            // Reset trạng thái về processing (từ hang hoặc processing)
-            order.status = 'processing';
             order.items.forEach(item => {
                 item.status = 'pending';
                 item.message = 'Đang xử lý...';
             });
+            order.status = 'processing';
             order.time = new Date().toLocaleTimeString();
             delete order.fullLog;
             saveData();
             renderOrderTable();
             renderClientOrders();
             showToast('Đã gửi', 'Chạy lại tool...', 'process');
-
             fetch('http://127.0.0.1:5000/run-auto', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -717,20 +711,10 @@
             })
             .then(r => r.json())
             .then(data => {
-                if (data.status !== 'success') {
-                    order.status = 'hang';
-                    saveData();
-                    renderClientOrders();
-                    if (currentUser.role === 'ADMIN') renderOrderTable();
-                    showToast('Lỗi', 'Server lỗi → Đơn bị treo', 'error');
-                }
+                showToast('Server', data.status === 'success' ? 'Đang chạy lại!' : 'Lỗi server', data.status === 'success' ? 'success' : 'error');
             })
             .catch(() => {
-                order.status = 'hang';
-                saveData();
-                renderClientOrders();
-                if (currentUser.role === 'ADMIN') renderOrderTable();
-                showToast('Lỗi kết nối', 'Không liên lạc được server → Đơn bị treo', 'error');
+                showToast('Lỗi', 'Không kết nối server!', 'error');
             });
         }
 
@@ -815,10 +799,7 @@
             pollingInterval = setInterval(async () => {
                 try {
                     const res = await fetch('http://127.0.0.1:5000/status');
-                    if (!res.ok) {
-                        // Nếu polling lỗi liên tục → có thể đánh dấu hang (tùy chọn)
-                        return;
-                    }
+                    if (!res.ok) return;
                     const logText = await res.text();
                     if (logText === lastLog) return;
                     lastLog = logText;
