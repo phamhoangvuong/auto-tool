@@ -187,7 +187,7 @@
                     </div>
                 </div>
             </div>
-            <div class="py-4 bg-black/20 text-center text-[10px] text-gray-500 relative z-20">Hệ thống v2.8 - Realtime Update 2025</div>
+            <div class="py-4 bg-black/20 text-center text-[10px] text-gray-500 relative z-20">Hệ thống v2.7 - Trạng thái "Đang bị treo" mới</div>
         </div>
     </div>
     <!-- View Dashboard -->
@@ -417,9 +417,6 @@
         </div>
     </div>
     <script>
-        // SERVER URL - THAY IP VPS CỦA BẠN TẠI ĐÂY
-        const SERVER_URL = 'http://103.116.52.136:5000';
-
         // ==================== FIREBASE CONFIG ====================
         const firebaseConfig = {
             apiKey: "AIzaSyC1Ss3l4PTjPy_nKQkL503iGp2j6xfvE",
@@ -667,19 +664,18 @@
                 dtuUser: dtuUser,
                 dtuPass: dtuPass,
                 service: 'Tín Chỉ Auto',
-                items: codes.split(',').map(c => ({ code: c.trim(), status: 'pending', message: 'Đang chờ server...' })),
+                items: codes.split(',').map(c => ({ code: c.trim(), status: 'pending', message: 'Chờ server xử lý...' })),
                 status: 'processing',
                 time: new Date().toLocaleTimeString(),
                 fullLog: ''
             };
-            ordersDB.unshift(newOrder); // Đơn mới lên đầu
+            ordersDB.unshift(newOrder);
             saveData();
             renderClientOrders();
             if (currentUser.role === 'ADMIN') renderOrderTable();
             showToast('Đã gửi', 'Đơn đã được gửi đến server...', 'success');
             closeToolModal();
-
-            fetch(`${SERVER_URL}/run-auto`, {
+            fetch('https://lying-iso-could-situated.trycloudflare.com/run-auto', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user: dtuUser, pass: dtuPass, codes: codes })
@@ -712,8 +708,7 @@
             renderOrderTable();
             renderClientOrders();
             showToast('Đã gửi', 'Chạy lại tool...', 'process');
-
-            fetch(`${SERVER_URL}/run-auto`, {
+            fetch('https://lying-iso-could-situated.trycloudflare.com/run-auto', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user: order.dtuUser, pass: order.dtuPass, codes: order.items.map(i => i.code).join(',') })
@@ -807,19 +802,73 @@
             return order.user === currentUser.user && currentUser.role === 'PRO';
         }
 
-        function updateOrderStatus(newStatus) {
-            if (newStatus === 'completed' && !hasPermissionToControlOrder()) {
-                showToast('Không có quyền', 'Chỉ VIP hoặc Admin được hoàn tất!', 'error');
-                return;
-            }
-            const order = ordersDB.find(o => o.id === selectedOrderId);
-            if (!order) return;
-            order.status = newStatus === 'completed' ? 'done' : 'cancelled';
-            saveData();
-            renderOrderTable();
-            renderClientOrders();
-            showToast('Thành công', newStatus === 'completed' ? 'Đơn hoàn tất' : 'Đơn đã hủy', 'success');
-            closeOrderDetailModal();
+        function startRealTimePolling() {
+            if (pollingInterval) clearInterval(pollingInterval);
+            let failCount = 0;
+            pollingInterval = setInterval(async () => {
+                try {
+                    const res = await fetch('https://lying-iso-could-situated.trycloudflare.com/status');
+                    if (!res.ok) throw new Error('Not ok');
+                    failCount = 0;
+                    const logText = await res.text();
+                    if (logText === lastLog) return;
+                    lastLog = logText;
+
+                    const runningOrder = ordersDB.find(o => o.status === 'processing');
+                    if (!runningOrder) return;
+
+                    runningOrder.fullLog = logText;
+
+                    const lines = logText.split('\n').reverse();
+                    let currentCode = null;
+
+                    for (const line of lines) {
+                        if (line.includes('Thử đăng ký:') || line.includes('⚡ Thử đăng ký:')) {
+                            const parts = line.split(/Thử đăng ký:|\⚡ Thử đăng ký:/);
+                            if (parts.length > 1) currentCode = parts[1].trim();
+                        }
+                        if (line.includes('ĐĂNG KÝ THÀNH CÔNG!') && currentCode) {
+                            const item = runningOrder.items.find(i => i.code === currentCode);
+                            if (item) {
+                                item.status = 'success';
+                                item.message = 'Đăng ký thành công';
+                            }
+                        }
+                        if (line.includes('HOÀN THÀNH - Đã đăng ký hết tất cả lớp!') || line.includes('HOÀN TẤT TẤT CẢ CÁC VÒNG ĐĂNG KÝ') || line.includes('🏁 HOÀN TẤT TẤT CẢ CÁC VÒNG ĐĂNG KÝ')) {
+                            runningOrder.status = 'done';
+                            runningOrder.items.forEach(item => {
+                                if (item.status === 'pending') {
+                                    item.status = 'error';
+                                    item.message = 'Lỗi hoặc hết chỗ';
+                                }
+                            });
+                            saveData();
+                            renderClientOrders();
+                            if (currentUser.role === 'ADMIN') renderOrderTable();
+                            showToast('Hoàn tất', 'Tool đã hoàn thành! Kết quả đã cập nhật.', 'success');
+                            if (!document.getElementById('order-detail-modal').classList.contains('hidden')) {
+                                viewOrderDetails(runningOrder.id);
+                            }
+                            break;
+                        }
+                    }
+
+                    saveData();
+                    renderClientOrders();
+                    if (currentUser.role === 'ADMIN') renderOrderTable();
+
+                } catch (e) {
+                    failCount++;
+                    const processingOrder = ordersDB.find(o => o.status === 'processing');
+                    if (processingOrder && failCount >= 2) {
+                        processingOrder.status = 'hanging';
+                        saveData();
+                        renderClientOrders();
+                        if (currentUser.role === 'ADMIN') renderOrderTable();
+                        showToast('Cảnh báo', 'Mất kết nối server → Đơn bị treo', 'error');
+                    }
+                }
+            }, 1500);
         }
 
         function openToolModal() {
@@ -992,7 +1041,7 @@
             let failCount = 0;
             pollingInterval = setInterval(async () => {
                 try {
-                    const res = await fetch(`${SERVER_URL}/status`);
+                    const res = await fetch('https://lying-iso-could-situated.trycloudflare.com/status');
                     if (!res.ok) throw new Error('Not ok');
                     failCount = 0;
                     const logText = await res.text();
@@ -1004,7 +1053,7 @@
 
                     runningOrder.fullLog = logText;
 
-                    const lines = logText.split('\n').reverse(); // Duyệt từ log mới nhất
+                    const lines = logText.split('\n').reverse();
                     let currentCode = null;
 
                     for (const line of lines) {
@@ -1019,7 +1068,7 @@
                                 item.message = 'Đăng ký thành công';
                             }
                         }
-                        if (line.includes('HOÀN THÀNH - Đã đăng ký hết tất cả lớp!') || line.includes('HOÀN TẤT TẤT CẢ CÁC VÒNG ĐĂNG KÝ')) {
+                        if (line.includes('HOÀN THÀNH - Đã đăng ký hết tất cả lớp!') || line.includes('HOÀN TẤT TẤT CẢ CÁC VÒNG ĐĂNG KÝ') || line.includes('🏁 HOÀN TẤT TẤT CẢ CÁC VÒNG ĐĂNG KÝ')) {
                             runningOrder.status = 'done';
                             runningOrder.items.forEach(item => {
                                 if (item.status === 'pending') {
@@ -1054,45 +1103,6 @@
                     }
                 }
             }, 1500);
-        }
-
-        // Gọi polling khi vào hệ thống
-        function enterSystem() {
-            document.getElementById('view-auth').style.opacity = '0';
-            document.getElementById('view-auth').style.display = 'none';
-            document.getElementById('view-dashboard').classList.remove('hidden');
-            document.getElementById('view-dashboard').style.opacity = '1';
-            document.getElementById('display-name').innerText = currentUser.user;
-            const pb = document.getElementById('user-plan-badge'), sb = document.getElementById('user-status-badge');
-            if (currentUser.role === 'ADMIN') {
-                pb.innerText = 'QUẢN TRỊ VIÊN'; pb.className = 'text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30';
-                sb.innerText = 'TOÀN QUYỀN'; sb.className = 'text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold border border-rose-500/30';
-            } else if (currentUser.role === 'PRO') {
-                pb.innerText = 'GÓI VIP'; pb.className = 'text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30';
-                sb.innerText = 'HOẠT ĐỘNG'; sb.className = 'text-[10px] px-2 py-0.5 rounded bg-green-500/20 text-green-400 font-bold border border-green-500/30';
-            } else {
-                pb.innerText = 'MIỄN PHÍ'; pb.className = 'text-[10px] px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-bold border border-white/10';
-                sb.innerText = 'CHƯA KÍCH HOẠT'; sb.className = 'text-[10px] px-2 py-0.5 rounded bg-yellow-500/10 text-yellow-500 font-bold border border-yellow-500/20';
-            }
-            if (currentUser.role === 'ADMIN') {
-                document.getElementById('admin-panel').classList.remove('hidden');
-                document.getElementById('client-panel').classList.add('hidden');
-                document.getElementById('nav-logo').classList.replace('bg-indigo-600', 'admin-bg');
-                document.getElementById('nav-role').innerText = "BẢNG QUẢN TRỊ";
-                document.getElementById('nav-role').classList.replace('text-indigo-300', 'text-rose-300');
-                renderUserTable(); renderOrderTable(); renderStats();
-            } else {
-                document.getElementById('admin-panel').classList.add('hidden');
-                document.getElementById('client-panel').classList.remove('hidden');
-                renderClientOrders();
-            }
-            if (currentUser.role !== 'ADMIN') {
-                const hideUntil = localStorage.getItem('welcome_hidden_until');
-                if (!hideUntil || Date.now() > parseInt(hideUntil)) {
-                    setTimeout(() => document.getElementById('welcome-modal').classList.add('show'), 800);
-                }
-            }
-            startRealTimePolling();
         }
 
         loadData();
