@@ -83,65 +83,60 @@
     </div>
 
     <!-- Modal Chào Mừng -->
+<!-- Modal Chào Mừng (đã sửa gọn, ngắn, đẹp hơn) -->
     <div id="welcome-modal">
-        <div class="modal-content p-8">
-            <div class="flex justify-between items-start mb-6">
-                <h3 class="text-2xl font-bold text-white flex items-center gap-3">
-                    <i class="fa-solid fa-bolt text-indigo-400 animate-pulse text-3xl"></i>
-                    Chào mừng đến với DTU Sniper Pro ⚡
+        <div class="modal-content p-6 max-w-sm"> <!-- Giảm max-width từ 480px xuống max-w-sm để nhỏ hơn -->
+            <div class="flex justify-between items-start mb-5">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-bolt text-indigo-400 animate-pulse text-2xl"></i>
+                    Chào mừng đến với DTU TOOL
                 </h3>
-                <button onclick="closeWelcomeModal()" class="text-gray-400 hover:text-white text-3xl transition">×</button>
+                <button onclick="closeWelcomeModal()" class="text-gray-400 hover:text-white text-2xl transition">×</button>
             </div>
-            <div class="space-y-6 text-sm text-gray-300 leading-relaxed">
-                <p class="flex items-center gap-3">
-                    <span class="text-yellow-400 text-xl">👑</span>
+            <div class="space-y-5 text-sm text-gray-300 leading-relaxed">
+                <p class="flex items-center gap-2">
+                    <span class="text-yellow-400 text-lg">👑</span>
                     <strong>Admin: Phạm Hoàng Vương</strong>
                 </p>
+
                 <div>
-                    <p class="font-bold text-cyan-400 mb-3 flex items-center gap-2">
-                        <span class="text-xl">🎯</span> TÍNH NĂNG CHÍNH
+                    <p class="font-bold text-orange-400 mb-2 flex items-center gap-2">
+                        <span class="text-lg">⚠️</span> LƯU Ý QUAN TRỌNG
                     </p>
-                    <p>• Tự động đăng nhập vào MyDTU</p>
-                    <p>• Giải Captcha AI siêu nhanh</p>
-                    <p>• Tự động đăng ký môn học theo danh sách mã lớp bạn cung cấp</p>
-                    <p>• Chạy liên tục 24/7 để săn lớp ngay khi có thể</p>
-                </div>
-                <div>
-                    <p class="font-bold text-orange-400 mb-3 flex items-center gap-2">
-                        <span class="text-xl">⚠️</span> LƯU Ý QUAN TRỌNG
-                    </p>
-                    <ol class="list-decimal list-inside space-y-2 ml-2 text-sm">
-                        <li>Tool sẽ sử dụng tài khoản MyDTU của bạn để đăng ký tự động.</li>
-                        <li>Vui lòng cung cấp đúng tài khoản và mật khẩu DTU.</li>
-                        <li>Nếu website trường bảo trì hoặc lỗi, tool sẽ tạm dừng và thử lại sau.</li>
-                        <li>Đăng ký thành công phụ thuộc vào tốc độ mạng và thời điểm chạy tool.</li>
-                        <li>Admin không chịu trách nhiệm nếu tài khoản DTU bị khóa do vi phạm quy định trường.</li>
+                    <ol class="list-decimal list-inside space-y-1 text-xs ml-1">
+                        <li>Tool sử dụng tài khoản MyDTU của bạn để đăng ký tự động.</li>
+                        <li>Vui lòng nhập đúng tài khoản và mật khẩu DTU.</li>
+                        <li>Nếu website trường bảo trì, tool sẽ tự thử lại sau.</li>
+                        <li>Thành công phụ thuộc vào tốc độ mạng và thời điểm chạy.</li>
+                        <li>Admin không chịu trách nhiệm nếu tài khoản bị khóa do vi phạm quy định trường.</li>
                     </ol>
                 </div>
+
                 <div>
-                    <p class="font-bold text-green-400 mb-3 flex items-center gap-2">
-                        <span class="text-xl">🔑</span> KÍCH HOẠT TÀI KHOẢN VIP
+                    <p class="font-bold text-green-400 mb-2 flex items-center gap-2">
+                        <span class="text-lg">🔑</span> KÍCH HOẠT VIP
                     </p>
-                    <p>Tài khoản miễn phí chỉ xem được thông tin. Để sử dụng tool đăng ký tự động, bạn cần nâng cấp gói VIP.</p>
-                    <p class="mt-3 font-semibold text-indigo-300">Liên hệ Admin để mua gói:</p>
-                    <div class="mt-3 space-y-2">
-                        <a href="https://www.facebook.com/PhamHoangVngw" target="_blank" class="flex items-center gap-3 p-3 bg-white/5 rounded-lg hover:bg-white/10 transition">
-                            <i class="fa-brands fa-facebook text-blue-500 text-xl"></i>
-                            <span class="font-medium">facebook.com/PhamHoangVngw</span>
+                    <p class="text-xs">Tài khoản miễn phí chỉ xem thông tin.<br>Để dùng tool tự động, cần nâng cấp VIP.</p>
+                    <p class="text-xs mt-2 font-semibold text-indigo-300">Liên hệ Admin:</p>
+                    <div class="mt-2 space-y-2">
+                        <a href="https://www.facebook.com/PhamHoangVngw" target="_blank" class="flex items-center gap-2 p-2 bg-white/5 rounded-lg hover:bg-white/10 transition text-xs">
+                            <i class="fa-brands fa-facebook text-blue-500"></i>
+                            <span>facebook.com/PhamHoangVngw</span>
                         </a>
-                        <div onclick="copyZalo()" class="flex items-center gap-3 p-3 bg-white/5 rounded-lg hover:bg-white/10 transition cursor-pointer">
-                            <i class="fa-solid fa-phone text-green-500 text-xl"></i>
-                            <span class="font-medium">0795616819 (Zalo) - Nhấn để sao chép</span>
+                        <div onclick="copyZalo()" class="flex items-center gap-2 p-2 bg-white/5 rounded-lg hover:bg-white/10 transition cursor-pointer text-xs">
+                            <i class="fa-solid fa-phone text-green-500"></i>
+                            <span>0795616819 (Zalo) - Nhấn để copy</span>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="mt-10 flex gap-3 justify-center">
-                <button onclick="hideWelcomeFor2Hours()" class="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-white transition">
+
+            <div class="mt-8 flex gap-3 justify-center">
+                <button onclick="hideWelcomeFor2Hours()" class="px-5 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-xs font-bold text-white transition">
                     Ẩn trong 2 tiếng
                 </button>
-                <button onclick="closeWelcomeModal()" class="btn-glow px-10 py-3 rounded-xl font-bold text-white shadow-lg hover:scale-105 transition">
-                    Tôi đã hiểu, bắt đầu sử dụng
+                <button onclick="closeWelcomeModal()" class="btn-glow px-8 py-2 rounded-lg text-sm font-bold text-white shadow-lg hover:scale-105 transition">
+                    Tôi đã hiểu, bắt đầu
                 </button>
             </div>
         </div>
