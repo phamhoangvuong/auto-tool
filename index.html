@@ -31,7 +31,6 @@
         .toast.show { transform: translate3d(0, 0, 0); }
         .table-row { border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s; cursor: pointer; }
         .table-row:hover { background: rgba(255,255,255,0.03); }
-
         /* Badge trạng thái nâng cấp */
         .status-badge {
             padding: 6px 10px;
@@ -48,21 +47,19 @@
         .st-process { background: rgba(56, 189, 248, 0.2); color: #7dd3fc; border: 1px solid rgba(56, 189, 248, 0.4); animation: pulse 2s infinite; }
         .st-error { background: rgba(244, 63, 94, 0.2); color: #fca5a5; border: 1px solid rgba(244, 63, 94, 0.4); }
         .st-done { background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.4); }
-        .st-hanging { 
-            background: rgba(251, 146, 60, 0.2); 
-            color: #fb923c; 
-            border: 1px solid rgba(251, 146, 60, 0.4); 
-            animation: flicker 1.8s infinite alternate; 
+        .st-hanging {
+            background: rgba(251, 146, 60, 0.2);
+            color: #fb923c;
+            border: 1px solid rgba(251, 146, 60, 0.4);
+            animation: flicker 1.8s infinite alternate;
         }
-        .st-pending { 
-            background: rgba(234, 179, 8, 0.2); 
-            color: #fbbf24; 
-            border: 1px solid rgba(234, 179, 8, 0.4); 
+        .st-pending {
+            background: rgba(234, 179, 8, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(234, 179, 8, 0.4);
         }
-
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
         @keyframes flicker { 0% { opacity: 0.8; } 100% { opacity: 1; } }
-
         .admin-bg { background: linear-gradient(135deg, var(--admin), #be123c) !important; }
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
@@ -190,7 +187,7 @@
                     </div>
                 </div>
             </div>
-            <div class="py-4 bg-black/20 text-center text-[10px] text-gray-500 relative z-20">Hệ thống v2.7 - Trạng thái "Đang bị treo" mới</div>
+            <div class="py-4 bg-black/20 text-center text-[10px] text-gray-500 relative z-20">Hệ thống v2.8 - Realtime Update 2025</div>
         </div>
     </div>
     <!-- View Dashboard -->
@@ -420,6 +417,9 @@
         </div>
     </div>
     <script>
+        // SERVER URL - THAY IP VPS CỦA BẠN TẠI ĐÂY
+        const SERVER_URL = 'http://103.116.52.136:5000';
+
         // ==================== FIREBASE CONFIG ====================
         const firebaseConfig = {
             apiKey: "AIzaSyC1Ss3l4PTjPy_nKQkL503iGp2j6xfvE",
@@ -441,7 +441,6 @@
         let pollingInterval = null;
         let lastLog = '';
 
-        // Hàm tạo badge trạng thái chung
         function getStatusBadge(status) {
             switch (status) {
                 case 'done':
@@ -449,7 +448,7 @@
                 case 'processing':
                     return '<span class="status-badge st-process"><i class="fa-solid fa-spinner"></i> Đang xử lý</span>';
                 case 'hanging':
-                    return '<span class="status-badge st-hanging" title="Không kết nối được với server"><i class="fa-solid fa-plug-circle-exclamation"></i> Đang bị treo</span>';
+                    return '<span class="status-badge st-hanging"><i class="fa-solid fa-plug-circle-exclamation"></i> Đang bị treo</span>';
                 default:
                     return '<span class="status-badge st-error"><i class="fa-solid fa-times"></i> Thất bại</span>';
             }
@@ -605,7 +604,6 @@
                 let stCls = 'st-success', stText = 'Hoạt động', stIcon = 'fa-check-circle';
                 if (u.status === 'blocked') { stCls = 'st-error'; stText = 'Đã khóa'; stIcon = 'fa-ban'; }
                 else if (u.status === 'pending') { stCls = 'st-pending'; stText = 'Chờ duyệt'; stIcon = 'fa-clock'; }
-
                 if (idx < 5) {
                     tbody.innerHTML += `<tr class="table-row">
                         <td class="px-6 py-4 font-bold text-white">${u.user}</td>
@@ -669,19 +667,19 @@
                 dtuUser: dtuUser,
                 dtuPass: dtuPass,
                 service: 'Tín Chỉ Auto',
-                items: codes.split(',').map(c => ({ code: c.trim(), status: 'pending', message: 'Chờ server xử lý...' })),
+                items: codes.split(',').map(c => ({ code: c.trim(), status: 'pending', message: 'Đang chờ server...' })),
                 status: 'processing',
                 time: new Date().toLocaleTimeString(),
                 fullLog: ''
             };
-            ordersDB.unshift(newOrder);
+            ordersDB.unshift(newOrder); // Đơn mới lên đầu
             saveData();
             renderClientOrders();
             if (currentUser.role === 'ADMIN') renderOrderTable();
             showToast('Đã gửi', 'Đơn đã được gửi đến server...', 'success');
             closeToolModal();
 
-            fetch('https://lying-iso-could-situated.trycloudflare.com/run-auto', {
+            fetch(`${SERVER_URL}/run-auto`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user: dtuUser, pass: dtuPass, codes: codes })
@@ -715,7 +713,7 @@
             renderClientOrders();
             showToast('Đã gửi', 'Chạy lại tool...', 'process');
 
-            fetch('https://lying-iso-could-situated.trycloudflare.com/run-auto', {
+            fetch(`${SERVER_URL}/run-auto`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user: order.dtuUser, pass: order.dtuPass, codes: order.items.map(i => i.code).join(',') })
@@ -779,7 +777,7 @@
                 const isSuccess = item.status === 'success';
                 const color = isSuccess ? "text-green-400" : "text-red-400";
                 const icon = isSuccess ? "fa-check-circle" : "fa-times-circle";
-                const message = item.message || (isSuccess ? "Đăng ký thành công" : "Lỗi");
+                const message = item.message || (isSuccess ? "Đăng ký thành công" : "Đang xử lý / Lỗi");
                 itemsDiv.innerHTML += `
                 <tr class="border-b border-white/5">
                     <td class="py-3 font-mono font-bold text-white">${item.code}</td>
@@ -809,71 +807,19 @@
             return order.user === currentUser.user && currentUser.role === 'PRO';
         }
 
-        function startRealTimePolling() {
-            if (pollingInterval) clearInterval(pollingInterval);
-            let failCount = 0;
-            pollingInterval = setInterval(async () => {
-                try {
-                    const res = await fetch('https://lying-iso-could-situated.trycloudflare.com/status');
-                    if (!res.ok) throw new Error('Not ok');
-                    failCount = 0;
-                    const logText = await res.text();
-                    if (logText === lastLog) return;
-                    lastLog = logText;
-
-                    const runningOrder = ordersDB.find(o => o.status === 'processing');
-                    if (!runningOrder) return;
-
-                    runningOrder.fullLog = logText;
-                    const lines = logText.split('\n');
-                    let currentCode = null;
-                    for (const line of lines) {
-                        if (line.includes('⚡ Đang xử lý:')) currentCode = line.split('⚡ Đang xử lý:')[1]?.trim();
-                        if (line.includes('🎉 ĐĂNG KÝ THÀNH CÔNG!') && currentCode) {
-                            const item = runningOrder.items.find(i => i.code === currentCode);
-                            if (item) { item.status = 'success'; item.message = 'Đăng ký thành công'; }
-                        }
-                        if (line.includes('❌ Không thể đăng ký:') && currentCode) {
-                            const msg = line.split('❌ Không thể đăng ký:')[1]?.trim() || 'Lỗi không xác định';
-                            const item = runningOrder.items.find(i => i.code === currentCode);
-                            if (item) { item.status = 'error'; item.message = msg; }
-                        }
-                    }
-
-                    if (logText.includes('🏁 HOÀN THÀNH TOOL CHO') ||
-                        logText.includes('TOOL ĐÃ DỪNG HOÀN TOÀN') ||
-                        logText.includes('ĐÃ DỪNG TOÀN BỘ TOOL DO PHIÊN')) {
-                        runningOrder.status = 'done';
-                        runningOrder.items.forEach(item => {
-                            if (item.status === 'pending') {
-                                item.status = 'error';
-                                item.message = 'Tool dừng (phiên không hợp lệ hoặc lỗi)';
-                            }
-                        });
-                        saveData();
-                        renderClientOrders();
-                        if (currentUser.role === 'ADMIN') renderOrderTable();
-                        showToast('Hoàn tất', 'Tool đã dừng. Kết quả đã cập nhật!', 'success');
-                        if (!document.getElementById('order-detail-modal').classList.contains('hidden')) {
-                            viewOrderDetails(runningOrder.id);
-                        }
-                    } else {
-                        saveData();
-                        renderClientOrders();
-                        if (currentUser.role === 'ADMIN') renderOrderTable();
-                    }
-                } catch (e) {
-                    failCount++;
-                    const processingOrder = ordersDB.find(o => o.status === 'processing');
-                    if (processingOrder && failCount >= 2) {
-                        processingOrder.status = 'hanging';
-                        saveData();
-                        renderClientOrders();
-                        if (currentUser.role === 'ADMIN') renderOrderTable();
-                        showToast('Cảnh báo', 'Mất kết nối server → Đơn bị treo', 'error');
-                    }
-                }
-            }, 1500);
+        function updateOrderStatus(newStatus) {
+            if (newStatus === 'completed' && !hasPermissionToControlOrder()) {
+                showToast('Không có quyền', 'Chỉ VIP hoặc Admin được hoàn tất!', 'error');
+                return;
+            }
+            const order = ordersDB.find(o => o.id === selectedOrderId);
+            if (!order) return;
+            order.status = newStatus === 'completed' ? 'done' : 'cancelled';
+            saveData();
+            renderOrderTable();
+            renderClientOrders();
+            showToast('Thành công', newStatus === 'completed' ? 'Đơn hoàn tất' : 'Đơn đã hủy', 'success');
+            closeOrderDetailModal();
         }
 
         function openToolModal() {
@@ -1039,6 +985,115 @@
         function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); particles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animate); }
         init(); animate();
         window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+
+        // CẬP NHẬT TRẠNG THÁI ĐƠN REALTIME TỪ LOG SERVER
+        function startRealTimePolling() {
+            if (pollingInterval) clearInterval(pollingInterval);
+            let failCount = 0;
+            pollingInterval = setInterval(async () => {
+                try {
+                    const res = await fetch(`${SERVER_URL}/status`);
+                    if (!res.ok) throw new Error('Not ok');
+                    failCount = 0;
+                    const logText = await res.text();
+                    if (logText === lastLog) return;
+                    lastLog = logText;
+
+                    const runningOrder = ordersDB.find(o => o.status === 'processing');
+                    if (!runningOrder) return;
+
+                    runningOrder.fullLog = logText;
+
+                    const lines = logText.split('\n').reverse(); // Duyệt từ log mới nhất
+                    let currentCode = null;
+
+                    for (const line of lines) {
+                        if (line.includes('Thử đăng ký:') || line.includes('⚡ Thử đăng ký:')) {
+                            const parts = line.split(/Thử đăng ký:|\⚡ Thử đăng ký:/);
+                            if (parts.length > 1) currentCode = parts[1].trim();
+                        }
+                        if (line.includes('ĐĂNG KÝ THÀNH CÔNG!') && currentCode) {
+                            const item = runningOrder.items.find(i => i.code === currentCode);
+                            if (item) {
+                                item.status = 'success';
+                                item.message = 'Đăng ký thành công';
+                            }
+                        }
+                        if (line.includes('HOÀN THÀNH - Đã đăng ký hết tất cả lớp!') || line.includes('HOÀN TẤT TẤT CẢ CÁC VÒNG ĐĂNG KÝ')) {
+                            runningOrder.status = 'done';
+                            runningOrder.items.forEach(item => {
+                                if (item.status === 'pending') {
+                                    item.status = 'error';
+                                    item.message = 'Lỗi hoặc hết chỗ';
+                                }
+                            });
+                            saveData();
+                            renderClientOrders();
+                            if (currentUser.role === 'ADMIN') renderOrderTable();
+                            showToast('Hoàn tất', 'Tool đã hoàn thành! Kết quả đã cập nhật.', 'success');
+                            if (!document.getElementById('order-detail-modal').classList.contains('hidden')) {
+                                viewOrderDetails(runningOrder.id);
+                            }
+                            break;
+                        }
+                    }
+
+                    saveData();
+                    renderClientOrders();
+                    if (currentUser.role === 'ADMIN') renderOrderTable();
+
+                } catch (e) {
+                    failCount++;
+                    const processingOrder = ordersDB.find(o => o.status === 'processing');
+                    if (processingOrder && failCount >= 2) {
+                        processingOrder.status = 'hanging';
+                        saveData();
+                        renderClientOrders();
+                        if (currentUser.role === 'ADMIN') renderOrderTable();
+                        showToast('Cảnh báo', 'Mất kết nối server → Đơn bị treo', 'error');
+                    }
+                }
+            }, 1500);
+        }
+
+        // Gọi polling khi vào hệ thống
+        function enterSystem() {
+            document.getElementById('view-auth').style.opacity = '0';
+            document.getElementById('view-auth').style.display = 'none';
+            document.getElementById('view-dashboard').classList.remove('hidden');
+            document.getElementById('view-dashboard').style.opacity = '1';
+            document.getElementById('display-name').innerText = currentUser.user;
+            const pb = document.getElementById('user-plan-badge'), sb = document.getElementById('user-status-badge');
+            if (currentUser.role === 'ADMIN') {
+                pb.innerText = 'QUẢN TRỊ VIÊN'; pb.className = 'text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30';
+                sb.innerText = 'TOÀN QUYỀN'; sb.className = 'text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold border border-rose-500/30';
+            } else if (currentUser.role === 'PRO') {
+                pb.innerText = 'GÓI VIP'; pb.className = 'text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30';
+                sb.innerText = 'HOẠT ĐỘNG'; sb.className = 'text-[10px] px-2 py-0.5 rounded bg-green-500/20 text-green-400 font-bold border border-green-500/30';
+            } else {
+                pb.innerText = 'MIỄN PHÍ'; pb.className = 'text-[10px] px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-bold border border-white/10';
+                sb.innerText = 'CHƯA KÍCH HOẠT'; sb.className = 'text-[10px] px-2 py-0.5 rounded bg-yellow-500/10 text-yellow-500 font-bold border border-yellow-500/20';
+            }
+            if (currentUser.role === 'ADMIN') {
+                document.getElementById('admin-panel').classList.remove('hidden');
+                document.getElementById('client-panel').classList.add('hidden');
+                document.getElementById('nav-logo').classList.replace('bg-indigo-600', 'admin-bg');
+                document.getElementById('nav-role').innerText = "BẢNG QUẢN TRỊ";
+                document.getElementById('nav-role').classList.replace('text-indigo-300', 'text-rose-300');
+                renderUserTable(); renderOrderTable(); renderStats();
+            } else {
+                document.getElementById('admin-panel').classList.add('hidden');
+                document.getElementById('client-panel').classList.remove('hidden');
+                renderClientOrders();
+            }
+            if (currentUser.role !== 'ADMIN') {
+                const hideUntil = localStorage.getItem('welcome_hidden_until');
+                if (!hideUntil || Date.now() > parseInt(hideUntil)) {
+                    setTimeout(() => document.getElementById('welcome-modal').classList.add('show'), 800);
+                }
+            }
+            startRealTimePolling();
+        }
 
         loadData();
     </script>
