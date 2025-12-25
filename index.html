@@ -7,11 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
     <style>
         :root {
             --primary: #6366f1; --admin: #f43f5e; --bg-dark: #020617;
@@ -33,17 +31,42 @@
         .toast.show { transform: translate3d(0, 0, 0); }
         .table-row { border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s; cursor: pointer; }
         .table-row:hover { background: rgba(255,255,255,0.03); }
-        .status-badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; text-transform: uppercase; white-space: nowrap; }
-        .st-success { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
-        .st-pending { background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.3); }
-        .st-error { background: rgba(244, 63, 94, 0.15); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.3); }
-        .st-process { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); animation: pulse 2s infinite; }
-        .st-done { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+
+        /* Badge trạng thái nâng cấp */
+        .status-badge {
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .st-success { background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.4); }
+        .st-process { background: rgba(56, 189, 248, 0.2); color: #7dd3fc; border: 1px solid rgba(56, 189, 248, 0.4); animation: pulse 2s infinite; }
+        .st-error { background: rgba(244, 63, 94, 0.2); color: #fca5a5; border: 1px solid rgba(244, 63, 94, 0.4); }
+        .st-done { background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.4); }
+        .st-hanging { 
+            background: rgba(251, 146, 60, 0.2); 
+            color: #fb923c; 
+            border: 1px solid rgba(251, 146, 60, 0.4); 
+            animation: flicker 1.8s infinite alternate; 
+        }
+        .st-pending { 
+            background: rgba(234, 179, 8, 0.2); 
+            color: #fbbf24; 
+            border: 1px solid rgba(234, 179, 8, 0.4); 
+        }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        @keyframes flicker { 0% { opacity: 0.8; } 100% { opacity: 1; } }
+
         .admin-bg { background: linear-gradient(135deg, var(--admin), #be123c) !important; }
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
         .custom-scroll::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 10px; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         #welcome-modal {
             position: fixed;
@@ -81,7 +104,6 @@
         <div id="toast-icon-bg" class="w-10 h-10 rounded-full flex items-center justify-center text-lg transition-colors duration-300"><i id="toast-icon" class="fa-solid fa-bell"></i></div>
         <div><h4 class="font-bold text-sm text-white" id="toast-title">Thông báo</h4><p class="text-xs text-gray-400" id="toast-msg">Nội dung...</p></div>
     </div>
-
     <!-- Modal Chào Mừng -->
     <div id="welcome-modal">
         <div class="modal-content p-6 max-w-sm">
@@ -97,7 +119,6 @@
                     <span class="text-yellow-400 text-lg">👑</span>
                     <strong>Admin: Phạm Hoàng Vương</strong>
                 </p>
-
                 <div>
                     <p class="font-bold text-orange-400 mb-2 flex items-center gap-2">
                         <span class="text-lg">⚠️</span> LƯU Ý QUAN TRỌNG
@@ -110,7 +131,6 @@
                         <li>Admin không chịu trách nhiệm nếu tài khoản bị khóa do vi phạm quy định trường.</li>
                     </ol>
                 </div>
-
                 <div>
                     <p class="font-bold text-green-400 mb-2 flex items-center gap-2">
                         <span class="text-lg">🔑</span> KÍCH HOẠT VIP
@@ -129,7 +149,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="mt-8 flex gap-3 justify-center">
                 <button onclick="hideWelcomeFor2Hours()" class="px-5 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-xs font-bold text-white transition">
                     Ẩn trong 2 tiếng
@@ -140,7 +159,6 @@
             </div>
         </div>
     </div>
-
     <!-- View Auth -->
     <div id="view-auth" class="flex-grow flex items-center justify-center p-4 relative z-10">
         <div class="glass w-full max-w-[420px] rounded-3xl overflow-hidden shadow-2xl relative">
@@ -172,10 +190,9 @@
                     </div>
                 </div>
             </div>
-            <div class="py-4 bg-black/20 text-center text-[10px] text-gray-500 relative z-20">Hệ thống v2.6 - Real-time Result & Log</div>
+            <div class="py-4 bg-black/20 text-center text-[10px] text-gray-500 relative z-20">Hệ thống v2.7 - Trạng thái "Đang bị treo" mới</div>
         </div>
     </div>
-
     <!-- View Dashboard -->
     <div id="view-dashboard" class="hidden opacity-0 transition-opacity duration-700 min-h-screen flex flex-col relative z-10">
         <nav class="container mx-auto mt-4 px-4 relative z-20">
@@ -218,7 +235,7 @@
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm text-left text-gray-400">
-  <thead class="text-xs text-gray-500 uppercase bg-black/20"><tr><th class="px-6 py-4">Thời gian</th><th class="px-6 py-4">Dịch vụ</th><th class="px-6 py-4">Kết quả</th><th class="px-6 py-4">Trạng thái</th></tr></thead>
+                                <thead class="text-xs text-gray-500 uppercase bg-black/20"><tr><th class="px-6 py-4">Thời gian</th><th class="px-6 py-4">Dịch vụ</th><th class="px-6 py-4">Kết quả</th><th class="px-6 py-4">Trạng thái</th></tr></thead>
                                 <tbody id="client-history-body"></tbody>
                             </table>
                         </div>
@@ -279,7 +296,6 @@
             </div>
         </main>
     </div>
-
     <!-- Modal Chi Tiết Đơn Hàng -->
     <div id="order-detail-modal" class="fixed inset-0 z-[65] hidden">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer" onclick="closeOrderDetailModal()"></div>
@@ -327,7 +343,6 @@
             </div>
         </div>
     </div>
-
     <!-- Modal Tool -->
     <div id="tool-modal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer" onclick="closeToolModal()"></div>
@@ -348,7 +363,6 @@
             </div>
         </div>
     </div>
-
     <!-- Modal Quản Lý Thành Viên -->
     <div id="user-list-modal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer" onclick="closeUserListModal()"></div>
@@ -369,7 +383,6 @@
             </div>
         </div>
     </div>
-
     <!-- Modal Quản Lý Tài Khoản -->
     <div id="action-modal" class="fixed inset-0 z-[60] hidden">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer" onclick="closeActionModal()"></div>
@@ -387,7 +400,6 @@
             </div>
         </div>
     </div>
-
     <!-- Modal Yêu Cầu VIP -->
     <div id="payment-modal" class="fixed inset-0 z-[60] hidden">
         <div class="absolute inset-0 bg-black/90 backdrop-blur-md cursor-pointer" onclick="closePaymentModal()"></div>
@@ -407,9 +419,8 @@
             </div>
         </div>
     </div>
-
     <script>
-        // ==================== FIREBASE CONFIG (THAY BẰNG CONFIG THẬT CỦA BẠN) ====================
+        // ==================== FIREBASE CONFIG ====================
         const firebaseConfig = {
             apiKey: "AIzaSyC1Ss3l4PTjPy_nKQkL503iGp2j6xfvE",
             authDomain: "myweddtutool.firebaseapp.com",
@@ -419,10 +430,8 @@
             appId: "1:83985574900:web:d088d1883579263c7e721",
             measurementId: "G-4Y7S27YXYY"
         };
-
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-
         const PRICE_VIP = 150000;
         let usersDB = [];
         let ordersDB = [];
@@ -432,14 +441,26 @@
         let pollingInterval = null;
         let lastLog = '';
 
+        // Hàm tạo badge trạng thái chung
+        function getStatusBadge(status) {
+            switch (status) {
+                case 'done':
+                    return '<span class="status-badge st-done"><i class="fa-solid fa-check"></i> Hoàn tất</span>';
+                case 'processing':
+                    return '<span class="status-badge st-process"><i class="fa-solid fa-spinner"></i> Đang xử lý</span>';
+                case 'hanging':
+                    return '<span class="status-badge st-hanging" title="Không kết nối được với server"><i class="fa-solid fa-plug-circle-exclamation"></i> Đang bị treo</span>';
+                default:
+                    return '<span class="status-badge st-error"><i class="fa-solid fa-times"></i> Thất bại</span>';
+            }
+        }
+
         async function loadData() {
             try {
                 const usersSnap = await db.collection('users').get();
                 usersDB = usersSnap.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-
                 const ordersSnap = await db.collection('orders').get();
                 ordersDB = ordersSnap.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-
                 if (!usersDB.find(x => x.user === 'admin')) {
                     const adminUser = {
                         user: 'admin',
@@ -451,7 +472,6 @@
                     await db.collection('users').doc('admin').set(adminUser);
                     usersDB.push(adminUser);
                 }
-
                 checkSession();
             } catch (err) {
                 console.error('Lỗi load Firebase:', err);
@@ -462,26 +482,12 @@
         async function saveData() {
             try {
                 const batch = db.batch();
-
-                usersDB.forEach(user => {
-                    batch.set(db.collection('users').doc(user.user), user);
-                });
-
-                ordersDB.forEach(order => {
-                    batch.set(db.collection('orders').doc(order.id.toString()), order);
-                });
-
+                usersDB.forEach(user => batch.set(db.collection('users').doc(user.user), user));
+                ordersDB.forEach(order => batch.set(db.collection('orders').doc(order.id.toString()), order));
                 await batch.commit();
-
                 if (currentUser && currentUser.role !== 'ADMIN') renderClientOrders();
-                if (currentUser.role === 'ADMIN') {
-                    renderUserTable();
-                    renderOrderTable();
-                    renderStats();
-                }
-            } catch (err) {
-                console.error('Lỗi lưu Firebase:', err);
-            }
+                if (currentUser.role === 'ADMIN') { renderUserTable(); renderOrderTable(); renderStats(); }
+            } catch (err) { console.error('Lỗi lưu:', err); }
         }
 
         function checkSession() {
@@ -533,7 +539,6 @@
             document.getElementById('view-dashboard').classList.remove('hidden');
             document.getElementById('view-dashboard').style.opacity = '1';
             document.getElementById('display-name').innerText = currentUser.user;
-
             const pb = document.getElementById('user-plan-badge'), sb = document.getElementById('user-status-badge');
             if (currentUser.role === 'ADMIN') {
                 pb.innerText = 'QUẢN TRỊ VIÊN'; pb.className = 'text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30';
@@ -545,7 +550,6 @@
                 pb.innerText = 'MIỄN PHÍ'; pb.className = 'text-[10px] px-2 py-0.5 rounded bg-gray-700 text-gray-400 font-bold border border-white/10';
                 sb.innerText = 'CHƯA KÍCH HOẠT'; sb.className = 'text-[10px] px-2 py-0.5 rounded bg-yellow-500/10 text-yellow-500 font-bold border border-yellow-500/20';
             }
-
             if (currentUser.role === 'ADMIN') {
                 document.getElementById('admin-panel').classList.remove('hidden');
                 document.getElementById('client-panel').classList.add('hidden');
@@ -558,14 +562,12 @@
                 document.getElementById('client-panel').classList.remove('hidden');
                 renderClientOrders();
             }
-
             if (currentUser.role !== 'ADMIN') {
                 const hideUntil = localStorage.getItem('welcome_hidden_until');
                 if (!hideUntil || Date.now() > parseInt(hideUntil)) {
                     setTimeout(() => document.getElementById('welcome-modal').classList.add('show'), 800);
                 }
             }
-
             startRealTimePolling();
         }
 
@@ -578,7 +580,6 @@
                 return;
             }
             myOrders.forEach(o => {
-                let stBadge = o.status === 'done' ? '<span class="status-badge st-done">Hoàn tất</span>' : (o.status === 'processing' ? '<span class="status-badge st-process">Đang xử lý</span>' : '<span class="status-badge st-error">Thất bại</span>');
                 let resultText = o.items.length + ' lớp';
                 if (o.status === 'done') {
                     const successCount = o.items.filter(i => i.status === 'success').length;
@@ -589,7 +590,7 @@
                     <td class="px-6 py-4 font-mono text-white">${o.time}</td>
                     <td class="px-6 py-4 text-xs font-bold text-indigo-300">Đăng Ký Tín Chỉ</td>
                     <td class="px-6 py-4 text-white">${resultText}</td>
-                    <td class="px-6 py-4">${stBadge}</td>
+                    <td class="px-6 py-4">${getStatusBadge(o.status)}</td>
                 </tr>`;
             });
         }
@@ -601,13 +602,15 @@
             if (fullTbody) fullTbody.innerHTML = '';
             const sortedUsers = [...usersDB].sort((a, b) => (a.status === 'pending' ? -1 : 1));
             sortedUsers.forEach((u, idx) => {
-                const stCls = u.status === 'active' ? 'st-success' : (u.status === 'blocked' ? 'st-error' : 'st-pending');
-                const stText = u.status === 'active' ? 'Hoạt động' : (u.status === 'blocked' ? 'Đã khóa' : 'Chờ duyệt');
+                let stCls = 'st-success', stText = 'Hoạt động', stIcon = 'fa-check-circle';
+                if (u.status === 'blocked') { stCls = 'st-error'; stText = 'Đã khóa'; stIcon = 'fa-ban'; }
+                else if (u.status === 'pending') { stCls = 'st-pending'; stText = 'Chờ duyệt'; stIcon = 'fa-clock'; }
+
                 if (idx < 5) {
                     tbody.innerHTML += `<tr class="table-row">
                         <td class="px-6 py-4 font-bold text-white">${u.user}</td>
                         <td class="px-6 py-4 ${u.role === 'PRO' ? 'text-indigo-400 font-bold' : ''}">${u.role}</td>
-                        <td class="px-6 py-4"><span class="status-badge ${stCls}">${stText}</span></td>
+                        <td class="px-6 py-4"><span class="status-badge ${stCls}"><i class="fa-solid ${stIcon}"></i> ${stText}</span></td>
                         <td class="px-6 py-4">${u.role !== 'ADMIN' ? `<button onclick="openActionMenu('${u.user}')" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center transition"><i class="fa-solid fa-ellipsis-vertical"></i></button>` : ''}</td>
                     </tr>`;
                 }
@@ -617,7 +620,7 @@
                         <td class="px-6 py-4 font-bold text-white">${u.user}</td>
                         <td class="px-6 py-4 text-indigo-300">${u.role}</td>
                         <td class="px-6 py-4 text-xs font-mono">${u.exp}</td>
-                        <td class="px-6 py-4"><span class="status-badge ${stCls}">${stText}</span></td>
+                        <td class="px-6 py-4"><span class="status-badge ${stCls}"><i class="fa-solid ${stIcon}"></i> ${stText}</span></td>
                         <td class="px-6 py-4">${u.role !== 'ADMIN' ? `<button onclick="openActionMenu('${u.user}')" class="text-xs bg-indigo-500/20 hover:bg-indigo-500 text-indigo-400 hover:text-white px-3 py-1 rounded transition">Quản lý</button>` : '<span class="text-xs text-gray-600">Admin</span>'}</td>
                     </tr>`;
                 }
@@ -628,8 +631,13 @@
             const tbody = document.getElementById('order-table-body');
             tbody.innerHTML = '';
             ordersDB.forEach(o => {
-                let stBadge = o.status === 'done' ? '<span class="status-badge st-done">Hoàn tất</span>' : (o.status === 'processing' ? '<span class="status-badge st-process">Đang xử lý</span>' : '<span class="status-badge st-error">Thất bại</span>');
-                tbody.innerHTML += `<tr class="table-row"><td class="px-4 py-3 font-bold text-white">${o.user}</td><td class="px-4 py-3 text-xs">Đăng Ký Tín Chỉ</td><td class="px-4 py-3"><button onclick="viewOrderDetails('${o.id}')" class="text-xs text-indigo-400 hover:text-white underline">Chi tiết</button></td><td class="px-4 py-3">${stBadge}</td></tr>`;
+                tbody.innerHTML += `
+                <tr class="table-row">
+                    <td class="px-4 py-3 font-bold text-white">${o.user}</td>
+                    <td class="px-4 py-3 text-xs">Đăng Ký Tín Chỉ</td>
+                    <td class="px-4 py-3"><button onclick="viewOrderDetails('${o.id}')" class="text-xs text-indigo-400 hover:text-white underline">Chi tiết</button></td>
+                    <td class="px-4 py-3">${getStatusBadge(o.status)}</td>
+                </tr>`;
             });
         }
 
@@ -647,7 +655,6 @@
             let dtuUser = document.getElementById('tool-dtu-user').value.trim();
             let dtuPass = document.getElementById('tool-dtu-pass').value;
             let codes = document.getElementById('tool-codes').value.replace(/\n/g, ",").trim();
-
             if (currentUser.role !== 'ADMIN' && currentUser.role !== 'PRO') {
                 document.getElementById('payment-modal').classList.remove('hidden');
                 return;
@@ -656,7 +663,6 @@
                 showToast('Lỗi', 'Nhập đủ thông tin!', 'error');
                 return;
             }
-
             const newOrder = {
                 id: Date.now(),
                 user: currentUser.user,
@@ -668,12 +674,10 @@
                 time: new Date().toLocaleTimeString(),
                 fullLog: ''
             };
-
             ordersDB.unshift(newOrder);
             saveData();
             renderClientOrders();
             if (currentUser.role === 'ADMIN') renderOrderTable();
-
             showToast('Đã gửi', 'Đơn đã được gửi đến server...', 'success');
             closeToolModal();
 
@@ -681,9 +685,18 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user: dtuUser, pass: dtuPass, codes: codes })
-            }).then(r => r.json()).then(data => {
+            })
+            .then(r => r.json())
+            .then(data => {
                 showToast('Server', data.status === 'success' ? 'Tool bắt đầu chạy!' : 'Lỗi khởi động', data.status === 'success' ? 'success' : 'error');
-            }).catch(() => showToast('Lỗi', 'Không kết nối được server!', 'error'));
+            })
+            .catch(() => {
+                newOrder.status = 'hanging';
+                saveData();
+                renderClientOrders();
+                if (currentUser.role === 'ADMIN') renderOrderTable();
+                showToast('Lỗi kết nối', 'Không thể kết nối server → Đơn bị treo', 'error');
+            });
         }
 
         function rerunOrder() {
@@ -693,10 +706,7 @@
             }
             const order = ordersDB.find(o => o.id === selectedOrderId);
             if (!order) return;
-            order.items.forEach(item => {
-                item.status = 'pending';
-                item.message = 'Đang xử lý...';
-            });
+            order.items.forEach(item => { item.status = 'pending'; item.message = 'Đang xử lý...'; });
             order.status = 'processing';
             order.time = new Date().toLocaleTimeString();
             delete order.fullLog;
@@ -704,6 +714,7 @@
             renderOrderTable();
             renderClientOrders();
             showToast('Đã gửi', 'Chạy lại tool...', 'process');
+
             fetch('http://127.0.0.1:5000/run-auto', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -714,7 +725,11 @@
                 showToast('Server', data.status === 'success' ? 'Đang chạy lại!' : 'Lỗi server', data.status === 'success' ? 'success' : 'error');
             })
             .catch(() => {
-                showToast('Lỗi', 'Không kết nối server!', 'error');
+                order.status = 'hanging';
+                saveData();
+                renderOrderTable();
+                renderClientOrders();
+                showToast('Lỗi kết nối', 'Không thể kết nối server → Đơn bị treo', 'error');
             });
         }
 
@@ -796,10 +811,12 @@
 
         function startRealTimePolling() {
             if (pollingInterval) clearInterval(pollingInterval);
+            let failCount = 0;
             pollingInterval = setInterval(async () => {
                 try {
                     const res = await fetch('http://127.0.0.1:5000/status');
-                    if (!res.ok) return;
+                    if (!res.ok) throw new Error('Not ok');
+                    failCount = 0;
                     const logText = await res.text();
                     if (logText === lastLog) return;
                     lastLog = logText;
@@ -808,33 +825,23 @@
                     if (!runningOrder) return;
 
                     runningOrder.fullLog = logText;
-
                     const lines = logText.split('\n');
                     let currentCode = null;
-
                     for (const line of lines) {
-                        if (line.includes('⚡ Đang xử lý:')) {
-                            currentCode = line.split('⚡ Đang xử lý:')[1]?.trim();
-                        }
+                        if (line.includes('⚡ Đang xử lý:')) currentCode = line.split('⚡ Đang xử lý:')[1]?.trim();
                         if (line.includes('🎉 ĐĂNG KÝ THÀNH CÔNG!') && currentCode) {
                             const item = runningOrder.items.find(i => i.code === currentCode);
-                            if (item) {
-                                item.status = 'success';
-                                item.message = 'Đăng ký thành công';
-                            }
+                            if (item) { item.status = 'success'; item.message = 'Đăng ký thành công'; }
                         }
                         if (line.includes('❌ Không thể đăng ký:') && currentCode) {
                             const msg = line.split('❌ Không thể đăng ký:')[1]?.trim() || 'Lỗi không xác định';
                             const item = runningOrder.items.find(i => i.code === currentCode);
-                            if (item) {
-                                item.status = 'error';
-                                item.message = msg;
-                            }
+                            if (item) { item.status = 'error'; item.message = msg; }
                         }
                     }
 
-                    if (logText.includes('🏁 HOÀN THÀNH TOOL CHO') || 
-                        logText.includes('TOOL ĐÃ DỪNG HOÀN TOÀN') || 
+                    if (logText.includes('🏁 HOÀN THÀNH TOOL CHO') ||
+                        logText.includes('TOOL ĐÃ DỪNG HOÀN TOÀN') ||
                         logText.includes('ĐÃ DỪNG TOÀN BỘ TOOL DO PHIÊN')) {
                         runningOrder.status = 'done';
                         runningOrder.items.forEach(item => {
@@ -856,7 +863,15 @@
                         if (currentUser.role === 'ADMIN') renderOrderTable();
                     }
                 } catch (e) {
-                    console.error("Polling error:", e);
+                    failCount++;
+                    const processingOrder = ordersDB.find(o => o.status === 'processing');
+                    if (processingOrder && failCount >= 2) {
+                        processingOrder.status = 'hanging';
+                        saveData();
+                        renderClientOrders();
+                        if (currentUser.role === 'ADMIN') renderOrderTable();
+                        showToast('Cảnh báo', 'Mất kết nối server → Đơn bị treo', 'error');
+                    }
                 }
             }, 1500);
         }
@@ -993,7 +1008,7 @@
             setTimeout(() => toast.classList.remove('show'), 4000);
         }
 
-        // Particles
+        // Particles background
         const canvas = document.getElementById('particles-canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
